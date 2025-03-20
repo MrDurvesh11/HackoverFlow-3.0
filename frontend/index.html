@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Binance 1-Minute Candle Data</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        } 
+        #candle-data {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .price-up {
+            color: green;
+        }
+        .price-down {
+            color: red;
+        }
+        h2 {
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Binance BTC/USDT 1-Minute Candle Data</h1>
+    <div class="card">
+        <h2>Latest Candle</h2>
+        <p>Symbol: <span id="symbol">-</span></p>
+        <p>Open: <span id="open-price">-</span></p>
+        <p>High: <span id="high-price">-</span></p>
+        <p>Low: <span id="low-price">-</span></p>
+        <p>Close: <span id="close-price">-</span></p>
+        <p>Volume: <span id="volume">-</span></p>
+        <p>Close Time: <span id="close-time">-</span></p>
+    </div>
+    
+    <h2>Raw Data</h2>
+    <div id="candle-data">Waiting for data...</div>
+    <div id="connection-status">Connecting to WebSocket server...</div>
+
+    <script>
+        // Get the WebSocket port from the server before connecting
+        fetch('/ws-port')
+            .then(response => response.json())
+            .then(data => {
+                const port = data.port;
+                connectWebSocket(port);
+            })
+            .catch(error => {
+                console.error('Error fetching WebSocket port:', error);
+                document.getElementById('connection-status').innerText = 
+                    "Error connecting to server. See console for details.";
+                // Try with default port as fallback
+                connectWebSocket(8765);
+            });
+
+        function connectWebSocket(port) {
+            document.getElementById('connection-status').innerText = 
+                `Connecting to WebSocket server on port ${port}...`;
+                
+            const socket = new WebSocket(`ws://localhost:${port}`);
+            let previousClose = null;
+            let reconnectAttempts = 0;
+            const maxReconnectAttempts = 5;
+
+            socket.onopen = function(e) {
+                console.log("Connection established");
+                document.getElementById('candle-data').innerText = "Connected to server, waiting for data...";
+                document.getElementById('connection-status').innerText = "Connected to WebSocket server";
+                reconnectAttempts = 0;
+            };
+
+            socket.onmessage = function(event) {
+                try {
+                    const data = JSON.parse(event.data);
+                    const kline = data.k;
+                    
+                    // Format and display the data
+                    document.getElementById('symbol').innerText = kline.s;
+                    document.getElementById('open-price').innerText = kline.o;
+                    document.getElementById('high-price').innerText = kline.h;
+                    document.getElementById('low-price').innerText = kline.l;
+                    
+                    // Set color based on price direction
+                    const closeElement = document.getElementById('close-price');
+                    closeElement.innerText = kline.c;
+                    
+                    if (previousClose !== null) {
+                        if (parseFloat(kline.c) > previousClose) {
+                            closeElement.className = 'price-up';
+                        } else if (parseFloat(kline.c) < previousClose) {
+                            closeElement.className = 'price-down';
+                        } else {
+                            closeElement.className = '';
+                        }
+                    }
+                    previousClose = parseFloat(kline.c);
+                    
+                    document.getElementById('volume').innerText = kline.v;
+                    document.getElementById('close-time').innerText = new Date(kline.T).toLocaleTimeString();
+                    
+                    // Display raw data
+                    document.getElementById('candle-data').innerText = JSON.stringify(data, null, 2);
+                } catch (e) {
+                    console.error("Error processing message:", e);
+                    document.getElementById('candle-data').innerText = 
+                        "Error processing data: " + e.message;
+                }
+            };
+
+            socket.onclose = function(event) {
+                if (event.wasClean) {
+                    console.log(`Connection closed cleanly, code=${event.code} reason=${event.reason}`);
+                } else {
+                    console.log('Connection died');
+                }
+                document.getElementById('candle-data').innerText = "Disconnected from server.";
+                document.getElementById('connection-status').innerText = "Disconnected from WebSocket server";
+                
+                // Try to reconnect
+                if (reconnectAttempts < maxReconnectAttempts) {
+                    reconnectAttempts++;
+                    document.getElementById('connection-status').innerText = 
+                        `Connection lost. Reconnecting (attempt ${reconnectAttempts}/${maxReconnectAttempts})...`;
+                    setTimeout(() => connectWebSocket(port), 3000);
+                } else {
+                    document.getElementById('connection-status').innerText = 
+                        "Maximum reconnection attempts reached. Please reload the page.";
+                }
+            };
+
+            socket.onerror = function(error) {
+                console.log(`Error: ${error.message}`);
+                document.getElementById('candle-data').innerText = "Connection error.";
+                document.getElementById('connection-status').innerText = 
+                    "WebSocket connection error. See console for details.";
+            };
+        }
+    </script>
+</body>
+</html>
