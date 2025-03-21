@@ -1,121 +1,107 @@
 from fastapi import FastAPI
-import ollama  # Use Ollama instead of OpenAI
+import ollama
 import yfinance as yf
 import requests
-import re
 
-# Alpha Vantage API Key (for stock news)
-ALPHA_VANTAGE_API_KEY = "3S0TFEAFKXGY00BC"
+# Finlight API Key
+FINLIGHT_API_KEY = "sk_0339f28ea040ebb4e007e513197beb4cfe7db659c76ca8b5537760a6e1671e55"
 
 app = FastAPI()
 
-def extract_symbol(query):
-    """Extract financial symbols using local LLM via Ollama"""
-    prompt = f"""Extract the financial symbol from this query: '{query}'. 
-    Return ONLY the stock ticker (e.g., AAPL) or cryptocurrency name (e.g., bitcoin).
-    If no symbol is found, return 'None'."""
-
-    try:
-        response = ollama.chat(model="llama3.1", messages=[{"role": "user", "content": prompt}])
-        extracted = response["message"]["content"].strip()
-        return extracted if extracted.lower() != "none" else None
-    except Exception as e:
-        print(f"Ollama Error: {e}")
-        return None
-
-def get_stock_data(symbol):
-    """Fetch stock data from Yahoo Finance"""
-    try:
-        stock = yf.Ticker(symbol)
-        info = stock.info
-        return {
-            "symbol": symbol,
-            "current_price": info.get("currentPrice"),
-            "market_cap": info.get("marketCap"),
-            "sector": info.get("sector"),
-            "52_week_high": info.get("fiftyTwoWeekHigh"),
-            "52_week_low": info.get("fiftyTwoWeekLow"),
-        }
-    except Exception as e:
-        print(f"Stock data error: {e}")
-        return {"error": "Invalid stock symbol"}
-
-def get_crypto_data(symbol):
-    """Fetch crypto data from CoinGecko"""
-    try:
-        url = f"https://api.coingecko.com/api/v3/simple/price?ids={symbol}&vs_currencies=usd"
-        response = requests.get(url)
-        data = response.json()
-        return {"symbol": symbol, "price": data.get(symbol, {}).get("usd", "N/A")}
-    except Exception as e:
-        print(f"Crypto data error: {e}")
-        return {"error": "Invalid crypto symbol"}
-
-def get_stock_news(symbol):
-    """Fetch stock news from Alpha Vantage"""
-    try:
-        url = f"https://www.alphavantage.co/query?function=NEWS_SENTIMENT&tickers={symbol}&apikey={ALPHA_VANTAGE_API_KEY}"
-        response = requests.get(url)
-        data = response.json()
+# def analyze_investment(query, news):
+#     """Generate investment analysis using local LLM"""
+#     try:
+#         news_text = "\n".join([f"- {article['summary'] (Sentiment: {article['sentiment']})" 
+#                           for article in news[:3]])
         
-        if "feed" in data:
-            return [{"title": item["title"], "url": item["url"]} for item in data["feed"][:5]]
-        return [{"error": "No recent news found"}]
-    except Exception as e:
-        print(f"Stock news error: {e}")
-        return [{"error": "News service unavailable"}]
-
-def get_crypto_news(symbol):
-    """Fetch crypto news from CoinGecko"""
-    try:
-        url = "https://api.coingecko.com/api/v3/news"
-        response = requests.get(url)
-        data = response.json()
+#         prompt = f"""Analyze this investment opportunity based on recent news:
+#         Query: {query}
         
-        news_list = []
-        for article in data.get("data", [])[:5]:
-            content = f"{article.get('title', '')} {article.get('content', '')}".lower()
-            if symbol.lower() in content:
-                news_list.append({"title": article["title"], "url": article.get("url", "")})
+#         Recent Developments:
+#         {news_text}
         
-        return news_list if news_list else [{"error": "No recent news found"}]
-    except Exception as e:
-        print(f"Crypto news error: {e}")
-        return [{"error": "News service unavailable"}]
+#         Provide detailed investment advice with:
+#         1. Recommendation (Buy/Hold/Sell)
+#         2. Key positives (bullet points)
+#         3. Potential risks (bullet points) 
+#         4. Long-term outlook (50 words)
+#         5. Suggested investment strategy
+        
+#         Format response in Markdown with clear section headings."""
+        
+#         response = ollama.chat(model="mistral", messages=[{"role": "user", "content": prompt}])
+#         return response["message"]["content"]
+#     except Exception as e:
+#         print(f"Analysis error: {e}")
+#         return "Unable to generate analysis at this time"
 
-def get_general_finance_advice(query):
-    """Generate financial advice using local LLM"""
+def analyze_investment(query, news):
+    """Generate investment analysis using local LLM"""
     try:
-        response = ollama.chat(model="llama3.1", messages=[{"role": "user", "content": query}])
+        # Corrected f-string syntax
+        news_text = "\n".join([f"- {article['summary']} (Sentiment: {article['sentiment']})" 
+                              for article in news[:5]])
+        
+        prompt = f"""Analyze this investment opportunity based on recent news:
+        Query: {query}
+        
+        Recent Developments:
+        {news_text}
+        
+        Provide detailed investment advice with:
+        1. Recommendation (Buy/Hold/Sell)
+        2. Key positives (bullet points)
+        3. Potential risks (bullet points) 
+        4. Long-term outlook (50 words)
+        5. Suggested investment strategy
+        
+        Format response in Markdown with clear section headings."""
+        
+        response = ollama.chat(model="mistral", messages=[{"role": "user", "content": prompt}])
         return response["message"]["content"]
     except Exception as e:
-        print(f"Ollama Error: {e}")
-        return "I'm having trouble connecting to the AI model. Please try again later."
+        print(f"Analysis error: {e}")
+        return "Unable to generate analysis at this time"
 
-@app.get("/chat")
-def chat(query: str):
-    """Main chat endpoint"""
-    symbol = extract_symbol(query)
+
+def get_finlight_news(query):
+    """Fetch financial news from Finlight API"""
+    try:
+        url = f'https://api.finlight.me/v1/articles?query={query}&pageSize=5'
+        headers = {'X-API-KEY': FINLIGHT_API_KEY}
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        
+        articles = response.json().get('articles', [])
+        return [{
+            "title": item["title"],
+            "source": item["source"],
+            "date": item["publishDate"],
+            "summary": item["summary"],
+            "sentiment": item["sentiment"],
+            "confidence": float(item["confidence"]),
+            "url": item["link"]
+        } for item in articles[:5]]  # Limit to top 5 articles
+        
+    except Exception as e:
+        print(f"News error: {e}")
+        return [{"error": "News service unavailable"}]
+
+@app.get("/analyze")
+async def investment_analysis(query: str):
+    """Main analysis endpoint"""
+    # Get relevant news articles
+    news_articles = get_finlight_news(query)
     
-    if symbol:
-        # Check if stock symbol (uppercase letters only)
-        if re.match(r"^[A-Z]+$", symbol):
-            return {
-                "type": "stock",
-                "data": get_stock_data(symbol),
-                "news": get_stock_news(symbol)
-            }
-        else:  # Assume cryptocurrency
-            return {
-                "type": "crypto",
-                "data": get_crypto_data(symbol),
-                "news": get_crypto_news(symbol)
-            }
+    # Generate AI-powered analysis
+    analysis = analyze_investment(query, news_articles) if news_articles else \
+               "Not enough data to analyze - consider broadening your query"
     
-    # Handle general queries
     return {
-        "type": "general",
-        "response": get_general_finance_advice(query)
+        "query": query,
+        "news_digest": news_articles[:5],  # Show top 5 most relevant
+        "investment_analysis": analysis,
+        "risk_level": "High" if any(art['sentiment'] == 'negative' for art in news_articles) else "Moderate"
     }
 
 if __name__ == "__main__":
