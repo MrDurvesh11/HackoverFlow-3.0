@@ -35,6 +35,7 @@ import {
   SignedIn,
   SignedOut,
   UserButton,
+  useUser,
 } from '@clerk/nextjs'
 
 // Adding React import and children type
@@ -44,6 +45,7 @@ import React, { ReactNode } from "react"
 export function Sidebar({ children }: { children: ReactNode }) {
   const pathname = usePathname()
 
+  const {user, isLoaded, isSignedIn} = useUser();
   return (
     <SidebarProvider>
       {/* Main layout container for sidebar + content */}
@@ -137,18 +139,33 @@ export function Sidebar({ children }: { children: ReactNode }) {
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
+
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathname === "/settings"}>
+                    <div >
+                    <SignedOut>
+              <SignInButton />
+            </SignedOut>
+            <SignedIn>
+              { isLoaded && user && (
+                <div className="flex items-center gap-2">
+              <UserButton />
+              <span>{user.fullName}</span>
+              </div>
+              )
+}
+            </SignedIn>
+
+            </div>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
           </SidebarContent>
 
           <SidebarFooter className="p-4 border-t border-border/40">
-            <SignedOut>
-              <SignInButton />
-            </SignedOut>
-            <SignedIn>
-              <UserButton />
-            </SignedIn>
+            
           </SidebarFooter>
         </ShadcnSidebar>
         

@@ -84,7 +84,7 @@ def get_indicator_data(candles):
         else:
             ema_signal = 'NEUTRAL'
     
-    print("\n============================================\n")
+    print("\n============== Indicators ========================\n")
     print(f"RSI Signal: {rsi_signal}, RSI: {current_rsi}")
     print(f"EMA Signal: {ema_signal}, EMA9: {ema9}, EMA20: {ema20}, EMA50: {ema50}")
     print(f"Price: {current_price}")
