@@ -36,6 +36,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+  ClerkProvider,
+  SignInButton,
+  SignUpButton,
+  SignedIn,
+  SignedOut,
+  UserButton,
+} from '@clerk/nextjs'
 
 export function Sidebar() {
   const pathname = usePathname()
@@ -137,7 +145,13 @@ export function Sidebar() {
         </SidebarContent>
 
         <SidebarFooter className="p-4 border-t border-border/40">
-          <DropdownMenu>
+        <SignedOut>
+              <SignInButton />
+            </SignedOut>
+            <SignedIn>
+              <UserButton />
+            </SignedIn>
+          {/* <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <div className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 p-2 rounded-md transition-colors">
                 <Avatar>
@@ -165,7 +179,7 @@ export function Sidebar() {
                 <span>Preferences</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
-          </DropdownMenu>
+          </DropdownMenu> */}
         </SidebarFooter>
       </ShadcnSidebar>
       <div className="fixed top-4 left-4 z-50 md:hidden">

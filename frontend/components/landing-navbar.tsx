@@ -5,6 +5,13 @@ import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import { Menu, X, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import {
+  SignInButton,
+  SignUpButton,
+  SignedIn,
+  SignedOut,
+  UserButton,
+} from '@clerk/nextjs'
 
 export function LandingNavbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -129,7 +136,7 @@ export function LandingNavbar() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.4 }}
         >
-          <Button variant="outline" size="sm" asChild>
+          {/* <Button variant="outline" size="sm" asChild>
             <Link href="/dashboard">Log In</Link>
           </Button>
           <Button size="sm" asChild className="relative overflow-hidden group">
@@ -142,7 +149,14 @@ export function LandingNavbar() {
                 transition={{ duration: 0.3, ease: "easeInOut" }}
               />
             </Link>
-          </Button>
+          </Button> */}
+          <SignedOut>
+              <SignInButton />
+              <SignUpButton />
+            </SignedOut>
+            <SignedIn>
+              <UserButton />
+            </SignedIn>
         </motion.div>
 
         <motion.button
