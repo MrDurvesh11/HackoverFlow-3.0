@@ -12,6 +12,7 @@ import { Slider } from "@/components/ui/slider"
 import { StockChart } from "@/components/stock-chart"
 import { CryptoChart } from "@/components/crypto-chart"
 import { StrategySettingsModal } from "@/components/ai-setting-dialog"
+import { Sidebar } from "@/components/sidebar"
 
 export default function AlgoTrading() {
   const [activeTab, setActiveTab] = useState("strategies")
@@ -25,7 +26,9 @@ export default function AlgoTrading() {
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <>
+    <Sidebar>
+    <div className="flex flex-col h-full w-full">
       <header className="border-b border-border/40 p-4 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Algo Trading</h1>
@@ -670,6 +673,7 @@ export default function AlgoTrading() {
         />
       )}
     </div>
+    </Sidebar></>
   )
 }
 

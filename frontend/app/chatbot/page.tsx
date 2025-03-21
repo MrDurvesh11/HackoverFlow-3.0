@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
+import { Sidebar } from "@/components/sidebar"
 
 export default function ChatbotPage() {
   const [messages, setMessages] = useState([
@@ -57,6 +58,8 @@ export default function ChatbotPage() {
   }
 
   return (
+    <>
+    <Sidebar>
     <div className="flex flex-col h-full">
       <header className="border-b border-border/40 p-4">
         <h1 className="text-2xl font-bold">FinChatbot</h1>
@@ -114,6 +117,7 @@ export default function ChatbotPage() {
         </Card>
       </div>
     </div>
+    </Sidebar></>
   )
 }
 

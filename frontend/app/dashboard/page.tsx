@@ -70,7 +70,8 @@ export default function Dashboard() {
   }
 
 
-  return (<>
+  return (
+  <>
     <Sidebar>
     <div className="flex flex-col h-full">
        <header className="border-b border-border/40 p-4 flex items-center justify-between">
