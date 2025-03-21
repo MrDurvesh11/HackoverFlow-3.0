@@ -103,7 +103,8 @@ def on_message(ws, message):
         candles.extend(candles_with_indicators[-60:])
         
         # Call LSTM function with updated candles
-        get_lstm_output(candles)
+        lstm_response = get_lstm_output(candles)
+        # print(f"LSTM prediction: {lstm_response}")
         
         return data
 
