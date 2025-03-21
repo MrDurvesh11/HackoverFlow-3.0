@@ -642,3 +642,21 @@ class BinanceTestnetClient:
             print(f"Response text: {response.text}")
         
         return response.json()
+
+    def get_my_trades(self, symbol, limit=500):
+        """Get historical trades for the account"""
+        endpoint = "/v3/myTrades"
+        params = {
+            'symbol': symbol,
+            'limit': limit,
+            'timestamp': self._get_timestamp()
+        }
+        
+        params['signature'] = self._generate_signature(params)
+        
+        headers = {
+            'X-MBX-APIKEY': self.API_KEY
+        }
+        
+        response = requests.get(f"{self.BASE_URL}{endpoint}", params=params, headers=headers)
+        return response.json()
