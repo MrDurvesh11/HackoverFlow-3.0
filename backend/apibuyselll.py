@@ -16,7 +16,7 @@ client = Client(api_key, api_secret, testnet=True)
 # Trading parameters
 symbol = 'BTCUSDT'
 quantity = 0.001  # Amount of BTC to trade (minimum is 0.001)
-profit_percentage = 1.5  # Target profit percentage
+profit_percentage = 0.1  # Target profit percentage
 stop_loss_percentage = 1.0  # Stop loss percentage
 check_interval = 60  # Time in seconds between price checks
 
@@ -294,7 +294,7 @@ def run_trading_bot():
                     if pnl_percent >= profit_percentage or pnl_percent <= -stop_loss_percentage:
                         print(f"Exit condition met. P&L: {pnl_percent:.2f}%")
                         cancel_all_orders(symbol)
-                        # sell_bitcoin(symbol, quantity)
+                        sell_bitcoin(symbol, quantity)
                         break
                     
                     time.sleep(check_interval)
@@ -302,7 +302,7 @@ def run_trading_bot():
                 # Sell after monitoring period if orders didn't execute
                 cancel_all_orders(symbol)
                 print("Selling after monitoring period...")
-                # sell_bitcoin(symbol, quantity)
+                sell_bitcoin(symbol, quantity)
             
             # Print final balance after this trade cycle
             print("Updated account balance:")

@@ -147,7 +147,7 @@ def cancel_all_orders(symbol):
 def get_trade_history(symbol, limit=10):
     """Retrieve trade history for a specific symbol"""
     try:
-        trades = client.get_my_trades(symbol=symbol, limit=limit)
+        trades = client.get_my_trades(symbol=symbol)
         
         if not trades:
             return []

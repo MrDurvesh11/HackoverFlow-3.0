@@ -76,6 +76,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Sidebar } from "@/components/sidebar";
 
+
 // Chart.js for visualizations - FIXED: Import necessary scale elements
 import {
   Chart as ChartJS,
@@ -97,8 +98,7 @@ ChartJS.register(
   BarElement
 );
 
-// API Base URL
-const API_BASE_URL = "http://localhost:5000/api";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export default function Transactions() {
   // State variables
