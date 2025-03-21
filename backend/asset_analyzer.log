@@ -1,0 +1,68 @@
+2025-03-21 14:38:59,739 - app - INFO - Starting server on port 5000
+2025-03-21 14:39:01,042 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.23:5000
+2025-03-21 14:39:01,043 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-03-21 14:39:01,047 - werkzeug - INFO -  * Restarting with stat
+2025-03-21 14:39:03,340 - app - INFO - Starting server on port 5000
+2025-03-21 14:39:03,358 - werkzeug - WARNING -  * Debugger is active!
+2025-03-21 14:39:03,368 - werkzeug - INFO -  * Debugger PIN: 134-036-210
+2025-03-21 14:40:11,597 - app - INFO - Request 1742548211-1 from 127.0.0.1: /analyze_stock
+2025-03-21 14:40:11,598 - app - INFO - Request 1742548211-1: Analyzing asset TCS
+2025-03-21 14:40:11,598 - asset_analyzer - INFO - Starting analysis for asset: TCS
+2025-03-21 14:40:11,599 - asset_analyzer - INFO - Identified asset as stock/index, symbol: TCS
+2025-03-21 14:40:11,600 - asset_analyzer - INFO - Sending query to Gemini AI
+2025-03-21 14:40:15,244 - asset_analyzer - INFO - AI response received, length: 2406
+2025-03-21 14:40:15,245 - asset_analyzer - WARNING - Direct JSON parsing failed, attempting alternative methods
+2025-03-21 14:40:15,246 - asset_analyzer - INFO - Successfully parsed JSON using regex pattern
+2025-03-21 14:40:20,373 - yfinance - ERROR - 404 Client Error: Not Found for url: https://query2.finance.yahoo.com/v10/finance/quoteSummary/TCS?modules=financialData%2CquoteType%2CdefaultKeyStatistics%2CassetProfile%2CsummaryDetail&corsDomain=finance.yahoo.com&formatted=false&symbol=TCS&crumb=vjFGjAj1wsL
+2025-03-21 14:40:20,374 - asset_analyzer - ERROR - Error in get_yfinance_data: 'NoneType' object has no attribute 'update'
+2025-03-21 14:40:20,400 - yfinance - ERROR - 404 Client Error: Not Found for url: https://query2.finance.yahoo.com/v10/finance/quoteSummary/TCS?modules=financialData%2CquoteType%2CdefaultKeyStatistics%2CassetProfile%2CsummaryDetail&corsDomain=finance.yahoo.com&formatted=false&symbol=TCS&crumb=vjFGjAj1wsL
+2025-03-21 14:40:20,401 - asset_analyzer - ERROR - Error fetching historical data: 'NoneType' object has no attribute 'update'
+2025-03-21 14:40:20,402 - asset_analyzer - INFO - Analysis completed for TCS in 8802ms
+2025-03-21 14:40:20,403 - app - INFO - Request 1742548211-1: Success, processed in 8.80s
+2025-03-21 14:40:20,404 - werkzeug - INFO - 127.0.0.1 - - [21/Mar/2025 14:40:20] "POST /analyze_stock HTTP/1.1" 200 -
+2025-03-21 14:40:47,199 - app - INFO - Request 1742548247-2 from 127.0.0.1: /analyze_stock
+2025-03-21 14:40:47,200 - app - INFO - Request 1742548247-2: Analyzing asset BIT
+2025-03-21 14:40:47,200 - asset_analyzer - INFO - Starting analysis for asset: BIT
+2025-03-21 14:40:47,204 - asset_analyzer - INFO - Identified asset as stock/index, symbol: BIT
+2025-03-21 14:40:47,205 - asset_analyzer - INFO - Sending query to Gemini AI
+2025-03-21 14:40:50,425 - asset_analyzer - INFO - AI response received, length: 2370
+2025-03-21 14:40:50,426 - asset_analyzer - WARNING - Direct JSON parsing failed, attempting alternative methods
+2025-03-21 14:40:50,426 - asset_analyzer - INFO - Successfully parsed JSON using regex pattern
+2025-03-21 14:40:51,713 - asset_analyzer - INFO - Analysis completed for BIT in 4512ms
+2025-03-21 14:40:51,714 - app - INFO - Request 1742548247-2: Success, processed in 4.51s
+2025-03-21 14:40:51,715 - werkzeug - INFO - 127.0.0.1 - - [21/Mar/2025 14:40:51] "POST /analyze_stock HTTP/1.1" 200 -
+2025-03-21 14:41:15,821 - app - INFO - Request 1742548275-3 from 127.0.0.1: /analyze_stock
+2025-03-21 14:41:15,821 - app - INFO - Request 1742548275-3: Analyzing asset BIT coin
+2025-03-21 14:41:15,821 - asset_analyzer - INFO - Starting analysis for asset: BIT coin
+2025-03-21 14:41:15,823 - asset_analyzer - INFO - Identified asset as stock/index, symbol: BIT coin
+2025-03-21 14:41:15,823 - asset_analyzer - INFO - Sending query to Gemini AI
+2025-03-21 14:41:18,978 - asset_analyzer - INFO - AI response received, length: 2130
+2025-03-21 14:41:18,979 - asset_analyzer - WARNING - Direct JSON parsing failed, attempting alternative methods
+2025-03-21 14:41:18,979 - asset_analyzer - INFO - Successfully parsed JSON using regex pattern
+2025-03-21 14:41:22,083 - yfinance - ERROR - $BIT COIN: possibly delisted; no price data found  (period=1mo) (Yahoo error = "No data found, symbol may be delisted")
+2025-03-21 14:41:22,108 - yfinance - ERROR - $BIT COIN: possibly delisted; no price data found  (period=2d) (Yahoo error = "No data found, symbol may be delisted")
+2025-03-21 14:41:24,861 - yfinance - ERROR - 404 Client Error: Not Found for url: https://query2.finance.yahoo.com/v10/finance/quoteSummary/BIT%20COIN?modules=financialData%2CquoteType%2CdefaultKeyStatistics%2CassetProfile%2CsummaryDetail&corsDomain=finance.yahoo.com&formatted=false&symbol=BIT+COIN&crumb=vjFGjAj1wsL
+2025-03-21 14:41:24,862 - asset_analyzer - ERROR - Error in get_yfinance_data: 'NoneType' object has no attribute 'update'
+2025-03-21 14:41:24,862 - asset_analyzer - INFO - Analysis completed for BIT coin in 9040ms
+2025-03-21 14:41:24,863 - app - INFO - Request 1742548275-3: Success, processed in 9.04s
+2025-03-21 14:41:24,864 - werkzeug - INFO - 127.0.0.1 - - [21/Mar/2025 14:41:24] "POST /analyze_stock HTTP/1.1" 200 -
+2025-03-21 14:42:02,557 - app - INFO - Request 1742548322-4 from 127.0.0.1: /analyze_stock
+2025-03-21 14:42:02,558 - app - INFO - Request 1742548322-4: Analyzing asset Adani
+2025-03-21 14:42:02,558 - asset_analyzer - INFO - Starting analysis for asset: Adani
+2025-03-21 14:42:02,559 - asset_analyzer - INFO - Identified asset as cryptocurrency, symbol: ADANI-USD
+2025-03-21 14:42:02,560 - asset_analyzer - INFO - Sending query to Gemini AI
+2025-03-21 14:42:05,991 - asset_analyzer - INFO - AI response received, length: 2437
+2025-03-21 14:42:05,992 - asset_analyzer - WARNING - Direct JSON parsing failed, attempting alternative methods
+2025-03-21 14:42:05,992 - asset_analyzer - INFO - Successfully parsed JSON using regex pattern
+2025-03-21 14:42:10,679 - yfinance - ERROR - $ADANI-USD: possibly delisted; no price data found  (period=1mo) (Yahoo error = "No data found, symbol may be delisted")
+2025-03-21 14:42:10,764 - yfinance - ERROR - $ADANI-USD: possibly delisted; no price data found  (period=2d) (Yahoo error = "No data found, symbol may be delisted")
+2025-03-21 14:42:12,483 - yfinance - ERROR - 404 Client Error: Not Found for url: https://query2.finance.yahoo.com/v10/finance/quoteSummary/ADANI-USD?modules=financialData%2CquoteType%2CdefaultKeyStatistics%2CassetProfile%2CsummaryDetail&corsDomain=finance.yahoo.com&formatted=false&symbol=ADANI-USD&crumb=vjFGjAj1wsL
+2025-03-21 14:42:12,484 - asset_analyzer - ERROR - Error in get_yfinance_data: 'NoneType' object has no attribute 'update'
+2025-03-21 14:42:12,485 - asset_analyzer - INFO - Analysis completed for Adani in 9927ms
+2025-03-21 14:42:12,485 - app - INFO - Request 1742548322-4: Success, processed in 9.93s
+2025-03-21 14:42:12,486 - werkzeug - INFO - 127.0.0.1 - - [21/Mar/2025 14:42:12] "POST /analyze_stock HTTP/1.1" 200 -
+2025-03-21 14:43:30,110 - werkzeug - INFO -  * Detected change in 'S:\\HackoverFlow-3.0\\backend\\stock_analyzer.py', reloading
+2025-03-21 14:43:32,385 - werkzeug - INFO -  * Restarting with stat
