@@ -1,0 +1,85 @@
+2025-03-21 10:28:35,970 - __main__ - INFO - RSI Strategy initialized with RSI thresholds: 40/60
+2025-03-21 10:28:35,970 - __main__ - INFO - Starting RSI strategy for BTCUSDT on 1m timeframe
+2025-03-21 10:28:36,135 - __main__ - INFO - [2025-03-21 10:28:36] Price: 84662.75, RSI: 39.82
+2025-03-21 10:28:36,135 - __main__ - INFO - RSI oversold (39.82) - BUY signal
+2025-03-21 10:28:36,286 - __main__ - ERROR - Error placing order: APIError(code=-2015): Invalid API-key, IP, or permissions for action.
+2025-03-21 10:29:36,446 - __main__ - INFO - [2025-03-21 10:29:36] Price: 84662.75, RSI: 39.82
+2025-03-21 10:29:36,447 - __main__ - INFO - RSI oversold (39.82) - BUY signal
+2025-03-21 10:29:36,601 - __main__ - ERROR - Error placing order: APIError(code=-2015): Invalid API-key, IP, or permissions for action.
+2025-03-21 10:30:36,794 - __main__ - INFO - [2025-03-21 10:30:36] Price: 84634.79, RSI: 35.01
+2025-03-21 10:30:36,794 - __main__ - INFO - RSI oversold (35.01) - BUY signal
+2025-03-21 10:30:36,953 - __main__ - ERROR - Error placing order: APIError(code=-2015): Invalid API-key, IP, or permissions for action.
+2025-03-21 10:31:37,110 - __main__ - INFO - [2025-03-21 10:31:37] Price: 84663.9, RSI: 40.16
+2025-03-21 10:31:45,674 - __main__ - INFO - RSI Strategy initialized with RSI thresholds: 40/60
+2025-03-21 10:31:45,676 - __main__ - INFO - Starting RSI strategy for BTCUSDT on 1m timeframe
+2025-03-21 10:31:45,827 - __main__ - INFO - [2025-03-21 10:31:45] Price: 84663.91, RSI: 40.17
+2025-03-21 10:32:45,998 - __main__ - INFO - [2025-03-21 10:32:45] Price: 84636.42, RSI: 34.78
+2025-03-21 10:32:45,999 - __main__ - INFO - RSI oversold (34.78) - BUY signal
+2025-03-21 10:32:46,148 - __main__ - ERROR - Error placing order: APIError(code=-2015): Invalid API-key, IP, or permissions for action.
+2025-03-21 10:33:39,880 - __main__ - INFO - RSI Strategy initialized with RSI thresholds: 40/60
+2025-03-21 10:33:39,880 - __main__ - INFO - Starting RSI strategy for BTCUSDT on 1m timeframe
+2025-03-21 10:33:40,042 - __main__ - INFO - [2025-03-21 10:33:40] Price: 84622.95, RSI: 32.47
+2025-03-21 10:33:40,042 - __main__ - INFO - RSI oversold (32.47) - BUY signal
+2025-03-21 10:33:40,198 - __main__ - ERROR - Error placing order: APIError(code=-2015): Invalid API-key, IP, or permissions for action.
+2025-03-21 10:34:09,187 - __main__ - INFO - RSI Strategy initialized with RSI thresholds: 40/60
+2025-03-21 10:34:09,187 - __main__ - INFO - Starting RSI strategy for BTCUSDT on 1m timeframe
+2025-03-21 10:34:09,345 - __main__ - INFO - [2025-03-21 10:34:09] Price: 84627.84, RSI: 34.53
+2025-03-21 10:34:09,352 - __main__ - INFO - RSI oversold (34.53) - BUY signal
+2025-03-21 10:34:09,492 - __main__ - ERROR - Error placing order: APIError(code=-2015): Invalid API-key, IP, or permissions for action.
+2025-03-21 10:35:09,666 - __main__ - INFO - [2025-03-21 10:35:09] Price: 84599.99, RSI: 30.18
+2025-03-21 10:35:09,666 - __main__ - INFO - RSI oversold (30.18) - BUY signal
+2025-03-21 10:35:09,825 - __main__ - ERROR - Error placing order: APIError(code=-2015): Invalid API-key, IP, or permissions for action.
+2025-03-21 10:36:09,985 - __main__ - INFO - [2025-03-21 10:36:09] Price: 84583.45, RSI: 26.74
+2025-03-21 10:36:09,986 - __main__ - INFO - RSI oversold (26.74) - BUY signal
+2025-03-21 10:36:10,146 - __main__ - ERROR - Error placing order: APIError(code=-2015): Invalid API-key, IP, or permissions for action.
+2025-03-21 10:37:10,303 - __main__ - INFO - [2025-03-21 10:37:10] Price: 84532.61, RSI: 21.07
+2025-03-21 10:37:10,309 - __main__ - INFO - RSI oversold (21.07) - BUY signal
+2025-03-21 10:37:10,465 - __main__ - ERROR - Error placing order: APIError(code=-2015): Invalid API-key, IP, or permissions for action.
+2025-03-21 10:38:10,604 - __main__ - INFO - [2025-03-21 10:38:10] Price: 84512.51, RSI: 19.39
+2025-03-21 10:38:10,619 - __main__ - INFO - RSI oversold (19.39) - BUY signal
+2025-03-21 10:38:10,767 - __main__ - ERROR - Error placing order: APIError(code=-2015): Invalid API-key, IP, or permissions for action.
+2025-03-21 10:39:04,209 - __main__ - INFO - Running on TESTNET - no real funds will be used
+2025-03-21 10:39:04,209 - __main__ - INFO - RSI Strategy initialized with RSI thresholds: 40/60
+2025-03-21 10:39:04,209 - __main__ - INFO - Starting RSI strategy for BTCUSDT on 1m timeframe
+2025-03-21 10:39:04,367 - __main__ - INFO - [2025-03-21 10:39:04] Price: 84568.98, RSI: 24.42
+2025-03-21 10:39:04,367 - __main__ - INFO - RSI oversold (24.42) - BUY signal
+2025-03-21 10:39:04,533 - __main__ - INFO - Placed BUY order at 84571.94. Take profit: 84994.79969999999, Stop loss: 84149.0803
+2025-03-21 10:40:04,689 - __main__ - INFO - [2025-03-21 10:40:04] Price: 84500.02, RSI: 17.59
+2025-03-21 10:41:04,863 - __main__ - INFO - [2025-03-21 10:41:04] Price: 84502.11, RSI: 18.34
+2025-03-21 10:42:05,022 - __main__ - INFO - [2025-03-21 10:42:05] Price: 84501.8, RSI: 18.32
+2025-03-21 10:43:05,181 - __main__ - INFO - [2025-03-21 10:43:05] Price: 84540.0, RSI: 31.51
+2025-03-21 10:44:05,356 - __main__ - INFO - [2025-03-21 10:44:05] Price: 84540.0, RSI: 31.51
+2025-03-21 10:45:05,795 - __main__ - INFO - [2025-03-21 10:45:05] Price: 84546.71, RSI: 33.68
+2025-03-21 10:46:05,960 - __main__ - INFO - [2025-03-21 10:46:05] Price: 84501.92, RSI: 27.45
+2025-03-21 10:46:42,060 - __main__ - INFO - Running on TESTNET - no real funds will be used
+2025-03-21 10:46:42,060 - __main__ - INFO - RSI Strategy initialized with RSI thresholds: 40/60
+2025-03-21 10:46:42,060 - __main__ - INFO - Starting RSI strategy for BTCUSDT on 1m timeframe
+2025-03-21 10:46:42,221 - __main__ - INFO - [2025-03-21 10:46:42] Price: 84493.5, RSI: 26.46
+2025-03-21 10:46:42,221 - __main__ - INFO - RSI oversold (26.46) - BUY signal
+2025-03-21 10:46:42,377 - __main__ - INFO - Placed BUY order at 84494.52. Take profit: 84536.76726, Stop loss: 84452.27274000001
+2025-03-21 10:47:52,102 - __main__ - INFO - [2025-03-21 10:47:52] Price: 84521.5, RSI: 34.40
+2025-03-21 10:48:52,269 - __main__ - INFO - [2025-03-21 10:48:52] Price: 84528.3, RSI: 36.23
+2025-03-21 10:49:52,740 - __main__ - INFO - [2025-03-21 10:49:52] Price: 84467.11, RSI: 28.08
+2025-03-21 10:50:52,889 - __main__ - INFO - [2025-03-21 10:50:52] Price: 84466.43, RSI: 28.18
+2025-03-21 10:51:53,051 - __main__ - INFO - [2025-03-21 10:51:53] Price: 84494.57, RSI: 35.80
+2025-03-21 10:52:53,219 - __main__ - INFO - [2025-03-21 10:52:53] Price: 84497.97, RSI: 37.15
+2025-03-21 10:53:44,968 - __main__ - INFO - WARNING: Running on REAL BINANCE - real funds will be used
+2025-03-21 10:53:44,983 - __main__ - INFO - RSI Strategy initialized with RSI thresholds: 40/60
+2025-03-21 10:53:44,983 - __main__ - INFO - Starting RSI strategy for BTCUSDT on 1m timeframe
+2025-03-21 10:53:45,140 - __main__ - INFO - [2025-03-21 10:53:45] Price: 84528.5, RSI: 44.88
+2025-03-21 10:54:45,295 - __main__ - INFO - [2025-03-21 10:54:45] Price: 84526.47, RSI: 44.50
+2025-03-21 10:55:45,458 - __main__ - INFO - [2025-03-21 10:55:45] Price: 84526.47, RSI: 44.50
+2025-03-21 10:56:45,630 - __main__ - INFO - [2025-03-21 10:56:45] Price: 84508.61, RSI: 42.24
+2025-03-21 10:57:45,784 - __main__ - INFO - [2025-03-21 10:57:45] Price: 84510.7, RSI: 42.96
+2025-03-21 10:58:45,953 - __main__ - INFO - [2025-03-21 10:58:45] Price: 84445.03, RSI: 34.01
+2025-03-21 10:58:45,953 - __main__ - INFO - RSI oversold (34.01) - BUY signal
+2025-03-21 10:58:46,101 - __main__ - ERROR - Error placing order: APIError(code=-2015): Invalid API-key, IP, or permissions for action.
+2025-03-21 10:59:46,265 - __main__ - INFO - [2025-03-21 10:59:46] Price: 84442.71, RSI: 34.65
+2025-03-21 10:59:46,265 - __main__ - INFO - RSI oversold (34.65) - BUY signal
+2025-03-21 10:59:46,416 - __main__ - ERROR - Error placing order: APIError(code=-2015): Invalid API-key, IP, or permissions for action.
+2025-03-21 11:00:46,575 - __main__ - INFO - [2025-03-21 11:00:46] Price: 84388.0, RSI: 28.29
+2025-03-21 11:00:46,575 - __main__ - INFO - RSI oversold (28.29) - BUY signal
+2025-03-21 11:00:46,731 - __main__ - ERROR - Error placing order: APIError(code=-2015): Invalid API-key, IP, or permissions for action.
+2025-03-21 11:01:46,887 - __main__ - INFO - [2025-03-21 11:01:46] Price: 84430.48, RSI: 36.50
+2025-03-21 11:01:46,888 - __main__ - INFO - RSI oversold (36.50) - BUY signal
+2025-03-21 11:01:47,038 - __main__ - ERROR - Error placing order: APIError(code=-2015): Invalid API-key, IP, or permissions for action.

@@ -11,9 +11,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider"
 import { StockChart } from "@/components/stock-chart"
 import { CryptoChart } from "@/components/crypto-chart"
+import { StrategySettingsModal } from "@/components/ai-setting-dialog"
 
 export default function AlgoTrading() {
   const [activeTab, setActiveTab] = useState("strategies")
+
+  const [settingsModalOpen, setSettingsModalOpen] = useState(false)
+  const [selectedStrategy, setSelectedStrategy] = useState(null)
+
+  const openSettingsModal = (strategy) => {
+    setSelectedStrategy(strategy)
+    setSettingsModalOpen(true)
+  }
 
   return (
     <div className="flex flex-col h-full">
@@ -119,7 +128,24 @@ export default function AlgoTrading() {
                     <CardDescription>Stock strategy - AAPL, MSFT, GOOGL</CardDescription>
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm"
+                    onClick={() => openSettingsModal({
+                      name: "Momentum Trader",
+                      type: "Stock",
+                      params: {
+                        timeFrame: "4h",
+                        riskLevel: "medium",
+                        maxPosition: 10000,
+                        stopLoss: 2.5,
+                        takeProfit: 5.0,
+                        trailingStop: false,
+                        indicators: {
+                          rsi: { enabled: true, period: 14, overbought: 70, oversold: 30 },
+                          macd: { enabled: true, fastPeriod: 12, slowPeriod: 26, signalPeriod: 9 },
+                          bollingerBands: { enabled: false, period: 20, deviation: 2 }
+                        }
+                      }
+                    })}>
                       <Settings className="h-3.5 w-3.5" />
                     </Button>
                     <Button variant="destructive" size="sm">
@@ -201,7 +227,24 @@ export default function AlgoTrading() {
                     <CardDescription>Crypto strategy - BTC, ETH</CardDescription>
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm"
+                    onClick={() => openSettingsModal({
+                      name: "Crypto Swing Trader",
+                      type: "Crypto",
+                      params: {
+                        timeFrame: "1h",
+                        riskLevel: "high",
+                        maxPosition: 15000,
+                        stopLoss: 3.5,
+                        takeProfit: 7.0,
+                        trailingStop: true,
+                        indicators: {
+                          rsi: { enabled: true, period: 14, overbought: 75, oversold: 25 },
+                          macd: { enabled: true, fastPeriod: 12, slowPeriod: 26, signalPeriod: 9 },
+                          bollingerBands: { enabled: true, period: 20, deviation: 2 }
+                        }
+                      }
+                    })}>
                       <Settings className="h-3.5 w-3.5" />
                     </Button>
                     <Button variant="destructive" size="sm">
@@ -617,6 +660,15 @@ export default function AlgoTrading() {
           </TabsContent>
         </Tabs>
       </div>
+      {selectedStrategy && (
+        <StrategySettingsModal 
+          open={settingsModalOpen}
+          onOpenChange={setSettingsModalOpen}
+          strategyName={selectedStrategy.name}
+          strategyType={selectedStrategy.type}
+          initialParams={selectedStrategy.params}
+        />
+      )}
     </div>
   )
 }
