@@ -1,6 +1,7 @@
 import numpy as np
 import json
 from my_justification import get_justification
+import math
 
 # User trading parameters (these will be inputs later)
 TRADING_AMOUNT = 1000.0  # Amount in USD to trade with
@@ -16,7 +17,7 @@ def generate_order(lstm_data, indicator_data, monte_carlo_data):
     monte_carlo_data: Dictionary containing Monte Carlo simulation results
     
     Returns:
-    Dictionary containing order details
+    Dictionary containing order details ready for execution on Binance testnet
     """
     # Check if we have valid data from all sources
     if not all([lstm_data, indicator_data, monte_carlo_data]):
@@ -126,13 +127,17 @@ def generate_order(lstm_data, indicator_data, monte_carlo_data):
             # Fallback if stop loss is invalid (shouldn't happen)
             position_size = TRADING_AMOUNT / current_price * 0.95  # 95% of available funds
         
-        # Create order
+        # Format the quantity according to Binance's lot size requirements
+        # For BTC, this would be rounded to 5 decimal places
+        formatted_quantity = format_quantity(position_size, "BTCUSDT")
+        
+        # Create order for Binance testnet
         order = {
             "symbol": "BTCUSDT",
             "side": order_type,
             "type": "LIMIT",
             "timeInForce": "GTC",
-            "quantity": round(position_size, 5),  # Round to 5 decimal places
+            "quantity": formatted_quantity,
             "price": round(current_price, 2),
             "stopLoss": round(stop_loss_price, 2),
             "takeProfit": round(take_profit_price, 2),
@@ -159,7 +164,7 @@ def generate_order(lstm_data, indicator_data, monte_carlo_data):
         print("\n============ ORDER DETAILS ============")
         print(f"ORDER TYPE: {order['side']}")
         print(f"SYMBOL: {order['symbol']}")
-        print(f"QUANTITY: {order['quantity']:.5f} BTC (${order['position_value']:.2f})")
+        print(f"QUANTITY: {order['quantity']} BTC (${order['position_value']:.2f})")
         print(f"ENTRY PRICE: ${order['price']:.2f}")
         print(f"STOP LOSS: ${order['stopLoss']:.2f} ({stop_loss_pct:.2f}%)")
         print(f"TAKE PROFIT: ${order['takeProfit']:.2f} ({(take_profit_price - current_price) / current_price * 100:.2f}%)")
@@ -175,10 +180,38 @@ def generate_order(lstm_data, indicator_data, monte_carlo_data):
         order["justification"] = justification
     else:
         print("Decision: NO ORDER - Combined signals are not strong enough for a buy")
-        
-        # Get AI-generated justification for not trading
-        # justification = get_justification(lstm_data, indicator_data, monte_carlo_data, None)
-        # print("\n============ NO TRADE JUSTIFICATION ============")
-        # print(justification)
     
     return order
+
+def format_quantity(quantity, symbol):
+    """Format the quantity according to Binance's lot size requirements"""
+    # Ensure quantity is a positive float
+    try:
+        quantity = float(quantity)
+    except (ValueError, TypeError):
+        print(f"Invalid quantity: {quantity}. Using minimum safe quantity.")
+        return 0.001 if symbol == "BTCUSDT" else 0.1
+        
+    # This is a simplified implementation that uses a higher minimum
+    # to avoid MIN_NOTIONAL filter issues
+    if symbol == "BTCUSDT":
+        # Use a minimum of 0.001 BTC to ensure MIN_NOTIONAL requirements
+        # At current BTC prices around $80,000+, this is around $80+
+        min_qty = 0.001
+        
+        # If quantity is too small for trading, adjust to minimum
+        if quantity < min_qty:
+            print(f"Warning: Calculated quantity {quantity} is below Binance minimum safe value. Adjusting to {min_qty}.")
+            return min_qty
+        
+        # Truncate to 5 decimal places to avoid floating point issues
+        return math.floor(quantity * 100000) / 100000
+    else:
+        # Use a higher minimum of 0.1 for other symbols to be safe
+        min_qty = 0.1
+        if quantity < min_qty:
+            print(f"Warning: Calculated quantity {quantity} is below minimum safe value. Adjusting to {min_qty}.")
+            return min_qty
+            
+        # Truncate to 2 decimal places
+        return math.floor(quantity * 100) / 100
