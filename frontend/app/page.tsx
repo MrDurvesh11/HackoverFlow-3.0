@@ -91,7 +91,7 @@ export default function LandingPage() {
       <LandingNavbar />
 
       {/* Hero Section with Animations */}
-      <section className="relative py-20 md:py-28 px-4 overflow-hidden">
+      <section className="relative py-16 px-4 overflow-hidden">
         <div className="absolute inset-0 bg-grid-white/5 [mask-image:linear-gradient(to_bottom,transparent,black,transparent)]" />
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-foreground/10 to-transparent" />
 
@@ -225,7 +225,7 @@ export default function LandingPage() {
                   />
                   <div className="relative bg-background/80 backdrop-blur-sm border border-border/40 rounded-xl overflow-hidden shadow-xl">
                     <motion.img
-                      src="/placeholder.svg?height=600&width=800"
+                      src="/header.jpg"
                       alt="TradeSense_Ai Dashboard Preview"
                       className="w-full h-auto"
                       initial={{ y: 20, opacity: 0 }}
@@ -397,7 +397,7 @@ export default function LandingPage() {
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
               >
                 <img
-                  src="/placeholder.svg?height=500&width=700"
+                  src="/Dashboard.jpg"
                   alt="TradeSense_Ai Dashboard"
                   className="w-full h-auto"
                 />
@@ -429,7 +429,7 @@ export default function LandingPage() {
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
               >
                 <img
-                  src="/placeholder.svg?height=500&width=700"
+                  src="/analysis.avif"
                   alt="TradeSense_Ai Analysis Tools"
                   className="w-full h-auto"
                 />
@@ -557,27 +557,27 @@ export default function LandingPage() {
             <motion.div variants={itemVariants}>
               <TestimonialCard
                 quote="TradeSense_Ai has completely transformed my trading strategy. The AI-powered insights have helped me identify opportunities I would have otherwise missed."
-                author="Sarah J."
+                author="Vedant Sharma"
                 role="Day Trader"
-                avatarUrl="/placeholder.svg?height=100&width=100"
+                avatarUrl="/avatar.png"
               />
             </motion.div>
 
             <motion.div variants={itemVariants} custom={1}>
               <TestimonialCard
                 quote="As someone new to investing, I was intimidated by the complexity of the markets. TradeSense_Ai made it accessible and helped me build a solid portfolio."
-                author="Michael T."
+                author="Pratik Agrawal"
                 role="New Investor"
-                avatarUrl="/placeholder.svg?height=100&width=100"
+                avatarUrl="/avatar.png"
               />
             </motion.div>
 
             <motion.div variants={itemVariants} custom={2}>
               <TestimonialCard
                 quote="The algorithmic trading features have saved me countless hours. I can now automate my strategies and focus on refining my approach rather than executing trades."
-                author="David L."
+                author="Ravi Mehta"
                 role="Portfolio Manager"
-                avatarUrl="/placeholder.svg?height=100&width=100"
+                avatarUrl="/avatar.png"
               />
             </motion.div>
           </motion.div>
