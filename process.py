@@ -66,8 +66,8 @@ def process_crypto_data(input_file, output_file):
 # Example usage
 if __name__ == "__main__":
     # Replace these with your actual file paths
-    input_file = "btc_1m_klines.csv"
-    output_file = "processed_btc1.csv"
+    input_file = "eth_1m_klines.csv"
+    output_file = "processed_eth1.csv"
     
     try:
         # Process the data
