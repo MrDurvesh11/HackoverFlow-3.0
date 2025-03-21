@@ -22,12 +22,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { cn } from "@/lib/utils"
 import { StockChart } from "@/components/stock-chart"
+import { Sidebar } from "@/components/sidebar"
 import { CryptoChart } from "@/components/crypto-chart"
 
 export default function Portfolio() {
   const [activeTab, setActiveTab] = useState("overview")
 
   return (
+    <>
+    <Sidebar>
     <div className="flex flex-col h-full">
       <header className="border-b border-border/40 p-4 flex items-center justify-between">
         <div>
@@ -723,6 +726,7 @@ export default function Portfolio() {
         </Tabs>
       </div>
     </div>
+    </Sidebar></>
   )
 }
 

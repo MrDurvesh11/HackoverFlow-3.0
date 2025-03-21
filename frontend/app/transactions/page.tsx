@@ -31,11 +31,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
+import { Sidebar } from "@/components/sidebar"
 export default function Transactions() {
   const [activeTab, setActiveTab] = useState("all");
 
   return (
+    <>
+    <Sidebar>
     <div className="flex flex-col h-full">
       <header className="border-b border-border/40 p-4 flex items-center justify-between">
         <div>
@@ -466,5 +468,6 @@ export default function Transactions() {
         </div>
       </div>
     </div>
+    </Sidebar></>
   );
 }

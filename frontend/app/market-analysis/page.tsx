@@ -9,11 +9,14 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { StockChart } from "@/components/stock-chart"
 import { CryptoChart } from "@/components/crypto-chart"
+import { Sidebar } from "@/components/sidebar"
 
 export default function MarketAnalysis() {
   const [activeTab, setActiveTab] = useState("stock")
 
   return (
+    <>
+    <Sidebar>
     <div className="flex flex-col h-full">
       <header className="border-b border-border/40 p-4 flex items-center justify-between">
         <div>
@@ -480,6 +483,7 @@ export default function MarketAnalysis() {
         </Tabs>
       </div>
     </div>
+    </Sidebar></>
   )
 }
 
