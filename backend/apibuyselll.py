@@ -16,7 +16,7 @@ client = Client(api_key, api_secret, testnet=True)
 # Trading parameters
 symbol = 'BTCUSDT'
 quantity = 0.001  # Amount of BTC to trade (minimum is 0.001)
-profit_percentage = 1.5  # Target profit percentage
+profit_percentage = 0.1  # Target profit percentage
 stop_loss_percentage = 1.0  # Stop loss percentage
 check_interval = 60  # Time in seconds between price checks
 

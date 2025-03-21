@@ -1,7 +1,13 @@
 "use client"
 
-import { useState } from "react"
-import { ArrowRight, Calendar, RefreshCw, Search, TrendingDown, TrendingUp } from "lucide-react"
+import { useEffect, useState } from "react"
+import { ArrowRight, Calendar, RefreshCw, Search, TrendingDown, TrendingUp ,
+  Info, 
+  ThumbsUp, 
+  ThumbsDown, 
+  BarChart, 
+  Activity, 
+  Newspaper, } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
@@ -13,6 +19,113 @@ import { Sidebar } from "@/components/sidebar"
 
 export default function MarketAnalysis() {
   const [activeTab, setActiveTab] = useState("stock")
+  const [ticker, setTicker] = useState("AAPL")
+  const [analysisLoading, setAnalysisLoading] = useState(false);
+  const [marketAnalysis, setMarketAnalysis] = useState(null);
+  const [stockData, setStockData] = useState(null)
+  const [timeRange, setTimeRange] = useState("1mo") // Default to 1 month
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState(null)
+
+  const fetchTickerInfo = async (ticker) => {
+    if (!ticker) return
+    
+    setIsLoading(true)
+    setError(null)
+    
+    try {
+      const response = await fetch(`/api/stock?ticker=${ticker}&interval=${timeRange}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+
+      console.log(data);
+      
+      if (data) {
+        console.log(data);
+        // const result = data.chart.result[0];
+        // const timestamps = result.quotes;
+        const quotes = data.quotes
+        const meta = data.meta;
+        
+        // Format data for the chart
+        const formattedData = quotes.map((quote, index) => ({
+          date: new Date(quote.date).toLocaleDateString(),
+          price: quote.close,
+          volume: quote.volume
+        })).filter(item => item.price !== null);
+        
+        // Get current price and change percentage
+        const currentPrice = formattedData[formattedData.length - 1].price;
+        const previousPrice = formattedData[formattedData.length - 2].price;
+        const changePercent = ((currentPrice - previousPrice) / previousPrice) * 100;
+        
+        setStockData({
+          tickerInfo: {
+            symbol: ticker,
+            name: `${meta.longName || ticker} - ${meta.exchangeName}`,
+            currentPrice: currentPrice.toFixed(2),
+            changePercent: changePercent.toFixed(2)
+          },
+          chartData: formattedData
+        });
+        fetchStockAnalysis(meta.longName)
+      }
+      
+      
+    } catch (err) {
+      console.error("Error fetching stock data:", err);
+      setError("Failed to fetch stock data. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchStockAnalysis = async (stockname) =>{
+    setAnalysisLoading(true);
+    try {
+      const response = await fetch('http://127.0.0.1:5000/analyze_stock', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ stock_name: stockname }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log("analysis data", data);
+      setMarketAnalysis(data);
+    } catch (err) {
+      console.error('Error fetching stock data:', err);
+    } finally {
+      setAnalysisLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    fetchTickerInfo(ticker);
+    
+  }, [ticker, timeRange]);
+
+  // Update the search input handling to set the ticker
+  const handleTickerSearch = (e) => {
+    if (e.key === 'Enter') {
+      setTicker(e.target.value.toUpperCase());
+    }
+  };
+
+  // Handle the time range select change
+  const handleTimeRangeChange = (value) => {
+    setTimeRange(value);
+  };
+
 
   return (
     <>
@@ -24,13 +137,13 @@ export default function MarketAnalysis() {
           <p className="text-muted-foreground">AI-powered insights and predictions</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="gap-1">
+          <Button variant="outline" size="sm" className="gap-1" onClick={() => fetchTickerInfo(ticker)}>
             <RefreshCw className="h-3.5 w-3.5" />
             <span>Refresh</span>
           </Button>
           <Button variant="outline" size="sm" className="gap-1">
             <Calendar className="h-3.5 w-3.5" />
-            <span>Mar 20, 2025</span>
+            <span>Mar 21, 2025</span>
           </Button>
         </div>
       </header>
@@ -46,42 +159,71 @@ export default function MarketAnalysis() {
           </div>
 
           <TabsContent value="stock" className="mt-0 space-y-4">
-            <div className="flex gap-4 items-center">
-              <div className="relative flex-1">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Search for a stock..." className="pl-9 bg-background/50 border-border/40" />
-              </div>
-              <Select defaultValue="1d">
-                <SelectTrigger className="w-[120px] bg-background/50 border-border/40">
-                  <SelectValue placeholder="Time Range" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1d">1 Day</SelectItem>
-                  <SelectItem value="1w">1 Week</SelectItem>
-                  <SelectItem value="1m">1 Month</SelectItem>
-                  <SelectItem value="3m">3 Months</SelectItem>
-                  <SelectItem value="1y">1 Year</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button>Analyze</Button>
+          <div className="flex gap-4 items-center">
+            <div className="relative flex-1">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input 
+                placeholder="Search for a stock..." 
+                className="pl-9 bg-background/50 border-border/40" 
+                defaultValue={ticker}
+                onKeyDown={handleTickerSearch}
+              />
             </div>
+            <Select value={timeRange} onValueChange={handleTimeRangeChange}>
+              <SelectTrigger className="w-[120px] bg-background/50 border-border/40">
+                <SelectValue placeholder="Time Range" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1d">1 Day</SelectItem>
+                <SelectItem value="1w">1 Week</SelectItem>
+                <SelectItem value="1mo">1 Month</SelectItem>
+                <SelectItem value="3m">3 Months</SelectItem>
+                <SelectItem value="1y">1 Year</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button onClick={() => fetchTickerInfo(ticker)} disabled={isLoading}>
+              {isLoading ? <RefreshCw className="h-4 w-4 animate-spin mr-2" /> : null}
+              Analyze
+            </Button>
+          </div>
+
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               <Card className="bg-gradient-card border-border/40 lg:col-span-2">
                 <CardHeader className="pb-2">
                   <div className="flex justify-between">
                     <div>
-                      <CardTitle>AAPL Stock Analysis</CardTitle>
-                      <CardDescription>Apple Inc. - NASDAQ</CardDescription>
+                      <CardTitle>{ticker} Stock Analysis</CardTitle>
+                      <CardDescription>
+                        {stockData?.tickerInfo?.name || "Loading..."}
+                      </CardDescription>
                     </div>
-                    <div className="flex items-center gap-2 text-profit">
-                      <TrendingUp className="h-4 w-4" />
-                      <span className="font-bold">+1.24%</span>
+                    <div className={`flex items-center gap-2 ${parseFloat(stockData?.tickerInfo?.changePercent) >= 0 ? 'text-profit' : 'text-loss'}`}>
+                      {stockData?.tickerInfo?.changePercent && (
+                        <>
+                          {parseFloat(stockData?.tickerInfo?.changePercent) >= 0 ? 
+                            <TrendingUp className="h-4 w-4" /> : 
+                            <TrendingDown className="h-4 w-4" />
+                          }
+                          <span className="font-bold">
+                            {parseFloat(stockData?.tickerInfo?.changePercent) >= 0 ? '+' : ''}
+                            {stockData?.tickerInfo?.changePercent}%
+                          </span>
+                        </>
+                      )}
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent className="h-[400px]">
-                  <StockChart />
+                  {error ? (
+                    <div className="h-full flex items-center justify-center text-loss">{error}</div>
+                  ) : isLoading ? (
+                    <div className="h-full flex items-center justify-center">
+                      <RefreshCw className="h-6 w-6 animate-spin" />
+                    </div>
+                  ) : (
+                    <StockChart data={stockData?.chartData} />
+                  )}
                 </CardContent>
               </Card>
 
@@ -153,53 +295,161 @@ export default function MarketAnalysis() {
                 </CardContent>
               </Card>
             </div>
-
+              
+            {marketAnalysis && (
             <Card className="bg-gradient-card border-border/40">
-              <CardHeader>
-                <CardTitle>AI Market Insights</CardTitle>
-                <CardDescription>Generated using advanced ML models</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <h3 className="font-medium">Technical Analysis</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Apple (AAPL) is showing strong bullish momentum with a breakout above the 50-day moving average. The
-                    RSI at 58.32 indicates moderate buying pressure without being overbought. MACD is positive and
-                    trending upward, confirming the bullish signal. Volume has increased by 15% compared to the 30-day
-                    average, supporting the upward movement.
-                  </p>
-                </div>
+            
+  <CardHeader>
+    <CardTitle className="flex justify-between items-center">
+      <span>{marketAnalysis.yfinance_symbol} Market Insights</span>
+      <div className="text-sm font-normal flex items-center gap-2">
+        <span>Current Price:</span>
+        <span className="font-bold">${marketAnalysis.current_price.toFixed(2)}</span>
+      </div>
+    </CardTitle>
+    <CardDescription className="flex justify-between">
+      <span>{marketAnalysis.companyName} | P/E: {marketAnalysis.pe_ratio.toFixed(2)}</span>
+      <span className="text-xs">Market Cap: ${(marketAnalysis.market_cap / 1e12).toFixed(2)}T</span>
+    </CardDescription>
+  </CardHeader>
+  <CardContent className="space-y-4">
+    <div className="bg-muted/20 p-3 rounded-lg space-y-3">
+      <h3 className="font-medium text-sm flex items-center gap-2">
+        <Info className="h-4 w-4" />
+        Company Overview
+      </h3>
+      <p className="text-sm text-muted-foreground">
+        {marketAnalysis.about_company}
+      </p>
+    </div>
 
-                <div className="space-y-2">
-                  <h3 className="font-medium">Fundamental Analysis</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Apple's recent product announcements have been well-received by the market. The company's services
-                    segment continues to show strong growth, contributing to improved profit margins. Forward P/E ratio
-                    of 28.5 is slightly above the 5-year average but justified by growth prospects. Cash reserves remain
-                    strong, supporting potential for increased dividends or share buybacks.
-                  </p>
-                </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="space-y-2">
+        <h3 className="font-medium text-sm flex items-center gap-2">
+          <ThumbsUp className="h-4 w-4 text-green-500" />
+          Strengths
+        </h3>
+        <ul className="text-xs text-muted-foreground space-y-1 list-disc pl-4">
+          {marketAnalysis.positives.map((positive, index) => (
+            <li key={index}>{positive}</li>
+          ))}
+        </ul>
+      </div>
 
-                <div className="space-y-2">
-                  <h3 className="font-medium">Risk Assessment</h3>
-                  <div className="grid grid-cols-3 gap-2">
-                    <div className="bg-muted/30 rounded-md p-2">
-                      <div className="text-xs text-muted-foreground">Short-term Risk</div>
-                      <div className="font-bold text-amber-500">Medium</div>
-                    </div>
-                    <div className="bg-muted/30 rounded-md p-2">
-                      <div className="text-xs text-muted-foreground">Medium-term Risk</div>
-                      <div className="font-bold text-green-500">Low</div>
-                    </div>
-                    <div className="bg-muted/30 rounded-md p-2">
-                      <div className="text-xs text-muted-foreground">Long-term Risk</div>
-                      <div className="font-bold text-green-500">Low</div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+      <div className="space-y-2">
+        <h3 className="font-medium text-sm flex items-center gap-2">
+          <ThumbsDown className="h-4 w-4 text-red-500" />
+          Concerns
+        </h3>
+        <ul className="text-xs text-muted-foreground space-y-1 list-disc pl-4">
+          {marketAnalysis.negatives.map((negative, index) => (
+            <li key={index}>{negative}</li>
+          ))}
+        </ul>
+      </div>
+    </div>
+
+    <div className="space-y-2">
+      <h3 className="font-medium text-sm flex items-center gap-2">
+        <BarChart className="h-4 w-4" />
+        Price Range (52 Week)
+      </h3>
+      <div className="relative pt-5">
+        <div className="h-2 w-full bg-muted/30 rounded-full overflow-hidden">
+          <div 
+            className="h-full bg-gradient-to-r from-red-500 to-green-500"
+            style={{ 
+              width: '100%'
+            }}
+          ></div>
+        </div>
+        <div className="flex justify-between text-xs mt-1">
+          <span className="text-muted-foreground">${marketAnalysis["52_week_low"].toFixed(2)}</span>
+          <span className="font-medium">
+            ${marketAnalysis.current_price.toFixed(2)}
+            <span className="ml-1 text-xs">
+              ({Math.round(((marketAnalysis.current_price - marketAnalysis["52_week_low"]) / (marketAnalysis["52_week_high"] - marketAnalysis["52_week_low"])) * 100)}%)
+            </span>
+          </span>
+          <span className="text-muted-foreground">${marketAnalysis["52_week_high"].toFixed(2)}</span>
+        </div>
+        <div 
+          className="absolute w-2 h-2 bg-blue-500 rounded-full top-4"
+          style={{ 
+            left: `${Math.round(((marketAnalysis.current_price - marketAnalysis["52_week_low"]) / (marketAnalysis["52_week_high"] - marketAnalysis["52_week_low"])) * 100)}%`,
+            transform: 'translateX(-50%)'
+          }}
+        ></div>
+      </div>
+    </div>
+
+    <div className="space-y-2">
+      <h3 className="font-medium text-sm flex items-center gap-2">
+        <Activity className="h-4 w-4" />
+        Analyst Recommendations
+      </h3>
+      <div className="h-6 w-full bg-muted/30 rounded-full overflow-hidden flex">
+        <div 
+          className="h-full bg-green-500 flex items-center justify-center text-xs text-white font-medium"
+          style={{ width: `${marketAnalysis.buy_recommendation_percent}%` }}
+        >
+          Buy {marketAnalysis.buy_recommendation_percent}%
+        </div>
+        <div 
+          className="h-full bg-yellow-500 flex items-center justify-center text-xs text-white font-medium"
+          style={{ width: `${marketAnalysis.hold_recommendation_percent}%` }}
+        >
+          Hold {marketAnalysis.hold_recommendation_percent}%
+        </div>
+        <div 
+          className="h-full bg-red-500 flex items-center justify-center text-xs text-white font-medium"
+          style={{ width: `${marketAnalysis.sell_recommendation_percent}%` }}
+        >
+          Sell {marketAnalysis.sell_recommendation_percent}%
+        </div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-2">
+        <div className="bg-muted/20 p-2 rounded-md">
+          <div className="text-xs text-muted-foreground">Buy Reason</div>
+          <div className="text-xs line-clamp-2">{marketAnalysis.buy_reason}</div>
+        </div>
+        <div className="bg-muted/20 p-2 rounded-md">
+          <div className="text-xs text-muted-foreground">Hold Reason</div>
+          <div className="text-xs line-clamp-2">{marketAnalysis.hold_reason}</div>
+        </div>
+        <div className="bg-muted/20 p-2 rounded-md">
+          <div className="text-xs text-muted-foreground">Sell Reason</div>
+          <div className="text-xs line-clamp-2">{marketAnalysis.sell_reason}</div>
+        </div>
+      </div>
+    </div>
+
+    <div className="space-y-2">
+      <h3 className="font-medium text-sm flex items-center gap-2">
+        <Newspaper className="h-4 w-4" />
+        Latest News
+      </h3>
+      <div className="space-y-2">
+        {marketAnalysis.latest_news.map((news, index) => (
+          <div key={index} className="bg-muted/20 p-2 rounded-md">
+            <div className="text-xs font-medium">{news.title}</div>
+            <div className="text-xs text-muted-foreground mt-1">
+              {news.description}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <Button variant="outline" className="w-full gap-1 mt-2 bg-muted/30">
+      <span>View Detailed Report</span>
+      <ArrowRight className="h-3.5 w-3.5" />
+    </Button>
+  </CardContent>
+</Card>
+)}
           </TabsContent>
+
 
           <TabsContent value="crypto" className="mt-0 space-y-4">
             <div className="flex gap-4 items-center">
