@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   ArrowDown,
   ArrowUp,
@@ -21,10 +21,12 @@ import { CryptoChart } from "@/components/crypto-chart"
 import { MarketNews } from "@/components/market-news"
 import { ChatbotButton } from "@/components/chatbot-button"
 import { RecentTransactions } from "@/components/recent-transactions"
+import { Sidebar } from "@/components/sidebar"
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("all")
   const [isLoading, setIsLoading] = useState(false)
+  const [currentTime, setCurrentTime] = useState("")
   const [marketData, setMarketData] = useState({
     sp500: { value: 4783.45, change: 1.23 },
     nasdaq: { value: 16742.39, change: 0.87 },
@@ -32,8 +34,14 @@ export default function Dashboard() {
     ethereum: { value: 3542.78, change: 0.63 },
   })
 
+  // Only update the time on the client side
+  useEffect(() => {
+    setCurrentTime(new Date().toLocaleTimeString())
+  }, [])
+
   const refreshData = () => {
     setIsLoading(true)
+    setCurrentTime(new Date().toLocaleTimeString())
 
     // Simulate API call to refresh market data
     setTimeout(() => {
@@ -61,9 +69,11 @@ export default function Dashboard() {
     }, 1000)
   }
 
-  return (
+
+  return (<>
+    <Sidebar>
     <div className="flex flex-col h-full">
-      <header className="border-b border-border/40 p-4 flex items-center justify-between">
+       <header className="border-b border-border/40 p-4 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Dashboard</h1>
           <p className="text-muted-foreground">Welcome back, John Doe</p>
@@ -83,7 +93,7 @@ export default function Dashboard() {
             )}
           </Button>
           <Button variant="outline" size="sm" className="gap-1">
-            <span>Last updated: {new Date().toLocaleTimeString()}</span>
+            <span>Last updated: {currentTime}</span>
           </Button>
         </div>
       </header>
@@ -417,6 +427,7 @@ export default function Dashboard() {
 
       <ChatbotButton />
     </div>
+    </Sidebar></>
   )
 }
 
