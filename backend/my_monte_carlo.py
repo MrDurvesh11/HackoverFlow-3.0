@@ -130,6 +130,5 @@ def get_monte_carlo_data(candles):
         "median_path": median_path.tolist(),
         "prob_increase": float(prob_increase),
         "forecast_horizon": forecast_horizon,
-        # Include a few sample paths for visualization
         "sample_paths": simulation_results[:10].tolist()
     }

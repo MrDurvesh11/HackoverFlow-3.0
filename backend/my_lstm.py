@@ -225,7 +225,7 @@ def get_lstm_output(candles):
             signal = "HOLD"
         
         # Print prediction results
-        print("\nLSTM Multi-Step Price Prediction:")
+        print("\n=======LSTM Multi-Step Price Prediction=======")
         print(f"Last known price: ${last_known_price:.2f}")
         print(f"Predicted prices for next 10 candles:")
         for i, price in enumerate(predicted_prices):
