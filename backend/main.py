@@ -7,6 +7,8 @@ import pandas as pd
 import pandas_ta as ta
 from collections import deque
 from my_lstm import get_lstm_output
+from my_indicator import get_indicator_data
+from my_monte_carlo import get_monte_carlo_data
 
 # Global variables to store data:
 # candles - recent 60 candles for display and LSTM
@@ -105,6 +107,14 @@ def on_message(ws, message):
         # Call LSTM function with updated candles
         lstm_response = get_lstm_output(candles)
         # print(f"LSTM prediction: {lstm_response}")
+        
+        # call indicator function
+        indicator_response = get_indicator_data(candles)
+        # print(f"Indicator prediction: {indicator_response}")
+        
+        # call monte carlo function
+        monte_carlo_response = get_monte_carlo_data(candles)
+        # print(f"Monte Carlo prediction: {monte_carlo_response}")
         
         return data
 
