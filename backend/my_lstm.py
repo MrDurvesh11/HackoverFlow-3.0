@@ -206,10 +206,6 @@ def get_lstm_output(candles):
             target_change = target_price - last_known_price
             target_percentage = (target_change / last_known_price) * 100
         else:  # SIDEWAYS
-            # For sideways, use a small range based on volatility
-            price_std = float(np.std(predicted_prices))
-            upper_target = float(last_known_price + price_std)
-            lower_target = float(last_known_price - price_std)
             # For simplicity in return value, use avg_predicted_price as the target
             target_price = float(avg_predicted_price)
             target_candle = int(len(predicted_prices) // 2)  # Middle of the forecast horizon
