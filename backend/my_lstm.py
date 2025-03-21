@@ -185,21 +185,41 @@ def get_lstm_output(candles):
             trend = "STRONG_UPTREND" if trend_strength > 0.7 else "UPTREND"
         elif overall_percentage < -0.10:
             trend = "STRONG_DOWNTREND" if trend_strength > 0.7 else "DOWNTREND"
-        elif overall_percentage > 0.03:
+        elif overall_percentage > 0.04:
             trend = "WEAK_UPTREND"
-        elif overall_percentage < -0.03:
+        elif overall_percentage < -0.04:
             trend = "WEAK_DOWNTREND"
         else:
             trend = "SIDEWAYS"
+        
+        # Calculate target price based on trend direction
+        if "UPTREND" in trend:
+            # For uptrends, target is the maximum predicted price
+            target_price = float(np.max(predicted_prices))
+            target_candle = int(np.argmax(predicted_prices)) + 1  # +1 to make it 1-indexed
+            target_change = target_price - last_known_price
+            target_percentage = (target_change / last_known_price) * 100
+        elif "DOWNTREND" in trend:
+            # For downtrends, target is the minimum predicted price
+            target_price = float(np.min(predicted_prices))
+            target_candle = int(np.argmin(predicted_prices)) + 1  # +1 to make it 1-indexed
+            target_change = target_price - last_known_price
+            target_percentage = (target_change / last_known_price) * 100
+        else:  # SIDEWAYS
+            # For simplicity in return value, use avg_predicted_price as the target
+            target_price = float(avg_predicted_price)
+            target_candle = int(len(predicted_prices) // 2)  # Middle of the forecast horizon
+            target_change = target_price - last_known_price
+            target_percentage = (target_change / last_known_price) * 100
         
         # Generate trading signal based on trend analysis
         if trend in ["STRONG_UPTREND", "UPTREND"]:
             signal = "BUY"
         elif trend in ["STRONG_DOWNTREND", "DOWNTREND"]:
             signal = "SELL"
-        elif trend == "WEAK_UPTREND" and immediate_percentage > 0.03:
+        elif trend == "WEAK_UPTREND" and immediate_percentage > 0.04:
             signal = "BUY"
-        elif trend == "WEAK_DOWNTREND" and immediate_percentage < -0.03:
+        elif trend == "WEAK_DOWNTREND" and immediate_percentage < -0.04:
             signal = "SELL"
         else:
             signal = "HOLD"
@@ -218,6 +238,9 @@ def get_lstm_output(candles):
         print(f"Overall trend: {trend}")
         print(f"Trend strength: {trend_strength:.2f}")
         print(f"Trading signal: {signal}")
+        print(f"Target price: ${target_price:.2f} (Candle {target_candle})")
+        print(f"Target change: ${target_change:.2f} ({target_percentage:.2f}%)")
+        
         
         return {
             "predicted_prices": predicted_prices.tolist(),
@@ -230,7 +253,11 @@ def get_lstm_output(candles):
             "endpoint_percentage_change": float(endpoint_percentage),
             "trend": trend,
             "trend_strength": float(trend_strength),
-            "signal": signal
+            "signal": signal,
+            "target_price": target_price,
+            "target_candle": target_candle,
+            "target_change": float(target_change),
+            "target_percentage": float(target_percentage)
         }
         
     except Exception as e:
