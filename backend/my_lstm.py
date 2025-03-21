@@ -133,11 +133,16 @@ def get_lstm_output(candles):
         immediate_change = predicted_prices[0] - last_known_price
         immediate_percentage = (immediate_change / last_known_price) * 100
         
-        # Analyze trend across all predicted candles
+        # Analyze trend using average of all predicted candles compared to last known price
+        avg_predicted_price = np.mean(predicted_prices)
+        overall_change = avg_predicted_price - last_known_price
+        overall_percentage = (overall_change / last_known_price) * 100
+        
+        # Also calculate endpoints change for comparison
         first_price = predicted_prices[0]
         last_price = predicted_prices[-1]
-        overall_change = last_price - first_price
-        overall_percentage = (overall_change / first_price) * 100
+        endpoint_change = last_price - first_price
+        endpoint_percentage = (endpoint_change / first_price) * 100
         
         # Calculate trend strength using linear regression
         x = np.arange(len(predicted_prices))
@@ -145,25 +150,44 @@ def get_lstm_output(candles):
         
         # Handle case where all predictions are the same (avoid zero division)
         if np.all(predicted_prices == predicted_prices[0]):
+            print("All predicted prices are identical - setting trend strength to 0")
             trend_strength = 0.0
             slope = 0.0
         else:
             try:
-                slope, _, r_value, _, _ = np.polyfit(x, y, 1, full=True)
-                trend_strength = abs(r_value[0])  # R^2 value indicates trend consistency
+                # Calculate linear regression properly
+                slope, intercept = np.polyfit(x, y, 1)
+                
+                # Calculate R² correctly
+                y_pred = slope * x + intercept
+                y_mean = np.mean(y)
+                
+                # R² = 1 - SSres/SStot
+                ss_res = np.sum((y - y_pred) ** 2)
+                ss_tot = np.sum((y - y_mean) ** 2)
+                
+                # Avoid division by zero
+                if ss_tot == 0:
+                    print("No variance in predicted prices - setting trend strength to 0")
+                    trend_strength = 0.0
+                else:
+                    r_squared = 1 - (ss_res / ss_tot)
+                    trend_strength = abs(r_squared)
+                    print(f"Calculated R²: {r_squared:.4f}, Trend strength: {trend_strength:.4f}")
+                    
             except Exception as fit_error:
-                print(f"Error in polyfit: {fit_error}")
+                print(f"Error in trend calculation: {fit_error}")
                 trend_strength = 0.0
                 slope = 0.0
         
-        # Determine trend direction
-        if overall_percentage > 1.0:
+        # Determine trend direction based on average price comparison
+        if overall_percentage > 0.10:
             trend = "STRONG_UPTREND" if trend_strength > 0.7 else "UPTREND"
-        elif overall_percentage < -1.0:
+        elif overall_percentage < -0.10:
             trend = "STRONG_DOWNTREND" if trend_strength > 0.7 else "DOWNTREND"
-        elif overall_percentage > 0.3:
+        elif overall_percentage > 0.03:
             trend = "WEAK_UPTREND"
-        elif overall_percentage < -0.3:
+        elif overall_percentage < -0.03:
             trend = "WEAK_DOWNTREND"
         else:
             trend = "SIDEWAYS"
@@ -173,9 +197,9 @@ def get_lstm_output(candles):
             signal = "BUY"
         elif trend in ["STRONG_DOWNTREND", "DOWNTREND"]:
             signal = "SELL"
-        elif trend == "WEAK_UPTREND" and immediate_percentage > 0.3:
+        elif trend == "WEAK_UPTREND" and immediate_percentage > 0.03:
             signal = "BUY"
-        elif trend == "WEAK_DOWNTREND" and immediate_percentage < -0.3:
+        elif trend == "WEAK_DOWNTREND" and immediate_percentage < -0.03:
             signal = "SELL"
         else:
             signal = "HOLD"
@@ -188,8 +212,10 @@ def get_lstm_output(candles):
             print(f"  Candle {i+1}: ${price:.2f}")
         
         print(f"\nImmediate change (next candle): ${immediate_change:.2f} ({immediate_percentage:.2f}%)")
+        print(f"Average predicted price: ${avg_predicted_price:.2f}")
+        print(f"Overall change (avg vs last known): ${overall_change:.2f} ({overall_percentage:.2f}%)")
+        print(f"Endpoint change (candle 10 vs candle 1): ${endpoint_change:.2f} ({endpoint_percentage:.2f}%)")
         print(f"Overall trend: {trend}")
-        print(f"Overall change (across predicted candles): ${overall_change:.2f} ({overall_percentage:.2f}%)")
         print(f"Trend strength: {trend_strength:.2f}")
         print(f"Trading signal: {signal}")
         
@@ -197,8 +223,11 @@ def get_lstm_output(candles):
             "predicted_prices": predicted_prices.tolist(),
             "immediate_price_change": float(immediate_change),
             "immediate_percentage_change": float(immediate_percentage),
+            "average_predicted_price": float(avg_predicted_price),
             "overall_change": float(overall_change),
             "overall_percentage_change": float(overall_percentage),
+            "endpoint_change": float(endpoint_change),
+            "endpoint_percentage_change": float(endpoint_percentage),
             "trend": trend,
             "trend_strength": float(trend_strength),
             "signal": signal
