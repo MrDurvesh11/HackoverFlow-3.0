@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { ArrowRight, Calendar, RefreshCw, Search, TrendingDown, TrendingUp } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -13,6 +13,82 @@ import { Sidebar } from "@/components/sidebar"
 
 export default function MarketAnalysis() {
   const [activeTab, setActiveTab] = useState("stock")
+  const [ticker, setTicker] = useState("AAPL")
+  const [stockData, setStockData] = useState(null)
+  const [timeRange, setTimeRange] = useState("1mo") // Default to 1 month
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState(null)
+
+  const fetchTickerInfo = async (ticker) => {
+    if (!ticker) return
+    
+    setIsLoading(true)
+    setError(null)
+    
+    try {
+      const response = await fetch(`/api/stock?ticker=${ticker}&interval=${timeRange}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+
+      console.log(data);
+      
+      if (data) {
+        console.log(data);
+        // const result = data.chart.result[0];
+        // const timestamps = result.quotes;
+        const quotes = data.quotes
+        const meta = data.meta;
+        
+        // Format data for the chart
+        const formattedData = quotes.map((quote, index) => ({
+          date: new Date(quote.date).toLocaleDateString(),
+          price: quote.close,
+          volume: quote.volume
+        })).filter(item => item.price !== null);
+        
+        // Get current price and change percentage
+        const currentPrice = formattedData[formattedData.length - 1].price;
+        const previousPrice = formattedData[formattedData.length - 2].price;
+        const changePercent = ((currentPrice - previousPrice) / previousPrice) * 100;
+        
+        setStockData({
+          tickerInfo: {
+            symbol: ticker,
+            name: `${meta.longName || ticker} - ${meta.exchangeName}`,
+            currentPrice: currentPrice.toFixed(2),
+            changePercent: changePercent.toFixed(2)
+          },
+          chartData: formattedData
+        });
+      }
+    } catch (err) {
+      console.error("Error fetching stock data:", err);
+      setError("Failed to fetch stock data. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTickerInfo(ticker);
+  }, [ticker, timeRange]);
+
+  // Update the search input handling to set the ticker
+  const handleTickerSearch = (e) => {
+    if (e.key === 'Enter') {
+      setTicker(e.target.value.toUpperCase());
+    }
+  };
+
+  // Handle the time range select change
+  const handleTimeRangeChange = (value) => {
+    setTimeRange(value);
+  };
+
 
   return (
     <>
@@ -24,13 +100,13 @@ export default function MarketAnalysis() {
           <p className="text-muted-foreground">AI-powered insights and predictions</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="gap-1">
+          <Button variant="outline" size="sm" className="gap-1" onClick={() => fetchTickerInfo(ticker)}>
             <RefreshCw className="h-3.5 w-3.5" />
             <span>Refresh</span>
           </Button>
           <Button variant="outline" size="sm" className="gap-1">
             <Calendar className="h-3.5 w-3.5" />
-            <span>Mar 20, 2025</span>
+            <span>Mar 21, 2025</span>
           </Button>
         </div>
       </header>
@@ -46,42 +122,71 @@ export default function MarketAnalysis() {
           </div>
 
           <TabsContent value="stock" className="mt-0 space-y-4">
-            <div className="flex gap-4 items-center">
-              <div className="relative flex-1">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Search for a stock..." className="pl-9 bg-background/50 border-border/40" />
-              </div>
-              <Select defaultValue="1d">
-                <SelectTrigger className="w-[120px] bg-background/50 border-border/40">
-                  <SelectValue placeholder="Time Range" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1d">1 Day</SelectItem>
-                  <SelectItem value="1w">1 Week</SelectItem>
-                  <SelectItem value="1m">1 Month</SelectItem>
-                  <SelectItem value="3m">3 Months</SelectItem>
-                  <SelectItem value="1y">1 Year</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button>Analyze</Button>
+          <div className="flex gap-4 items-center">
+            <div className="relative flex-1">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input 
+                placeholder="Search for a stock..." 
+                className="pl-9 bg-background/50 border-border/40" 
+                defaultValue={ticker}
+                onKeyDown={handleTickerSearch}
+              />
             </div>
+            <Select value={timeRange} onValueChange={handleTimeRangeChange}>
+              <SelectTrigger className="w-[120px] bg-background/50 border-border/40">
+                <SelectValue placeholder="Time Range" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1d">1 Day</SelectItem>
+                <SelectItem value="1w">1 Week</SelectItem>
+                <SelectItem value="1mo">1 Month</SelectItem>
+                <SelectItem value="3m">3 Months</SelectItem>
+                <SelectItem value="1y">1 Year</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button onClick={() => fetchTickerInfo(ticker)} disabled={isLoading}>
+              {isLoading ? <RefreshCw className="h-4 w-4 animate-spin mr-2" /> : null}
+              Analyze
+            </Button>
+          </div>
+
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               <Card className="bg-gradient-card border-border/40 lg:col-span-2">
                 <CardHeader className="pb-2">
                   <div className="flex justify-between">
                     <div>
-                      <CardTitle>AAPL Stock Analysis</CardTitle>
-                      <CardDescription>Apple Inc. - NASDAQ</CardDescription>
+                      <CardTitle>{ticker} Stock Analysis</CardTitle>
+                      <CardDescription>
+                        {stockData?.tickerInfo?.name || "Loading..."}
+                      </CardDescription>
                     </div>
-                    <div className="flex items-center gap-2 text-profit">
-                      <TrendingUp className="h-4 w-4" />
-                      <span className="font-bold">+1.24%</span>
+                    <div className={`flex items-center gap-2 ${parseFloat(stockData?.tickerInfo?.changePercent) >= 0 ? 'text-profit' : 'text-loss'}`}>
+                      {stockData?.tickerInfo?.changePercent && (
+                        <>
+                          {parseFloat(stockData?.tickerInfo?.changePercent) >= 0 ? 
+                            <TrendingUp className="h-4 w-4" /> : 
+                            <TrendingDown className="h-4 w-4" />
+                          }
+                          <span className="font-bold">
+                            {parseFloat(stockData?.tickerInfo?.changePercent) >= 0 ? '+' : ''}
+                            {stockData?.tickerInfo?.changePercent}%
+                          </span>
+                        </>
+                      )}
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent className="h-[400px]">
-                  <StockChart />
+                  {error ? (
+                    <div className="h-full flex items-center justify-center text-loss">{error}</div>
+                  ) : isLoading ? (
+                    <div className="h-full flex items-center justify-center">
+                      <RefreshCw className="h-6 w-6 animate-spin" />
+                    </div>
+                  ) : (
+                    <StockChart data={stockData?.chartData} />
+                  )}
                 </CardContent>
               </Card>
 
@@ -200,6 +305,7 @@ export default function MarketAnalysis() {
               </CardContent>
             </Card>
           </TabsContent>
+
 
           <TabsContent value="crypto" className="mt-0 space-y-4">
             <div className="flex gap-4 items-center">
