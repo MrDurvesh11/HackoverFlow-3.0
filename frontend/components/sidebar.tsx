@@ -47,7 +47,7 @@ export function Sidebar({ children }: { children: ReactNode }) {
   return (
     <SidebarProvider>
       {/* Main layout container for sidebar + content */}
-      <div className="flex h-screen">
+      <div className="flex h-screen w-screen">
         <ShadcnSidebar className="border-r border-border/40 h-full">
           <SidebarHeader className="p-4">
             <div className="flex items-center gap-2">
@@ -69,8 +69,8 @@ export function Sidebar({ children }: { children: ReactNode }) {
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname === "/"}>
-                      <Link href="/">
+                    <SidebarMenuButton asChild isActive={pathname === "/dashboard"}>
+                      <Link href="/dashboard">
                         <Home className="w-4 h-4" />
                         <span>Dashboard</span>
                       </Link>
