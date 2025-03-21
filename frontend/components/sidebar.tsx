@@ -1,8 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { usePathname } from "next/navigation"
 import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
 import {
   BarChart3,
   Briefcase,
@@ -10,7 +9,6 @@ import {
   CreditCard,
   Home,
   LineChart,
-  LogOut,
   MessageSquare,
   Settings,
   User,
@@ -41,28 +39,6 @@ import {
 
 export function Sidebar() {
   const pathname = usePathname()
-  const router = useRouter()
-  const [userData, setUserData] = useState<any>(null)
-
-  useEffect(() => {
-    // Get user data from localStorage
-    const user = localStorage.getItem("user")
-    if (user) {
-      try {
-        const userData = JSON.parse(user)
-        setUserData(userData)
-      } catch (error) {
-        console.error("Error parsing user data:", error)
-      }
-    }
-  }, [])
-
-  const handleLogout = () => {
-    // Clear user data from localStorage
-    localStorage.removeItem("user")
-    // Redirect to login page
-    router.push("/login")
-  }
 
   return (
     <SidebarProvider>
@@ -166,16 +142,11 @@ export function Sidebar() {
               <div className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 p-2 rounded-md transition-colors">
                 <Avatar>
                   <AvatarImage src="/placeholder.svg?height=40&width=40" />
-                  <AvatarFallback>
-                    {userData?.name
-                      ?.split(" ")
-                      .map((n: string) => n[0])
-                      .join("") || "JD"}
-                  </AvatarFallback>
+                  <AvatarFallback>JD</AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col">
-                  <span className="text-sm font-medium">{userData?.name || "John Doe"}</span>
-                  <span className="text-xs text-muted-foreground">{userData?.role || "Pro Trader"}</span>
+                  <span className="text-sm font-medium">John Doe</span>
+                  <span className="text-xs text-muted-foreground">Pro Trader</span>
                 </div>
                 <ChevronDown className="h-4 w-4 ml-auto" />
               </div>
@@ -190,9 +161,8 @@ export function Sidebar() {
                 <span>Settings</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout}>
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Log out</span>
+              <DropdownMenuItem>
+                <span>Preferences</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
