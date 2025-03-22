@@ -5,7 +5,7 @@ import type React from "react"
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { motion, useInView, useScroll, useTransform, AnimatePresence } from "framer-motion"
-import { ArrowRight, BarChart3, Bitcoin, Briefcase, CreditCard, LineChart, MessageSquare, Zap } from "lucide-react"
+import { ArrowRight, BarChart3, Bitcoin, Briefcase, CreditCard, LineChart, MessageSquare, Zap, TrendingUp, Activity, Shield, Rocket, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { LandingNavbar } from "@/components/landing-navbar"
@@ -14,6 +14,24 @@ import { TestimonialCard } from "@/components/testimonial-card"
 
 export default function LandingPage() {
   const [isLoaded, setIsLoaded] = useState(false)
+  const [activeTab, setActiveTab] = useState("overview");
+  
+  const sampleData = [
+    { name: 'Jan', value: 65 },
+    { name: 'Feb', value: 59 },
+    { name: 'Mar', value: 80 },
+    { name: 'Apr', value: 81 },
+    { name: 'May', value: 56 },
+    { name: 'Jun', value: 95 },
+    { name: 'Jul', value: 78 }
+  ];
+  
+  const riskScenarios = [
+    { name: "Low Risk", value: 40, color: "#10b981" },
+    { name: "Medium Risk", value: 35, color: "#f59e0b" },
+    { name: "High Risk", value: 25, color: "#ef4444" }
+  ];
+  
 
   // Refs for scroll animations
   const featuresRef = useRef(null)
@@ -85,6 +103,61 @@ export default function LandingPage() {
       transition: { duration: 0.5, ease: "easeOut" },
     },
   }
+
+  const fadeIn = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { duration: 0.6 } }
+  };
+  
+  const staggerContainer = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2
+      }
+    }
+  };
+  
+  const itemVariant = {
+    hidden: { y: 20, opacity: 0 },
+    visible: { 
+      y: 0, 
+      opacity: 1,
+      transition: { 
+        type: "spring", 
+        stiffness: 300,
+        damping: 24
+      }
+    }
+  };
+  
+  const cardVariant = {
+    hidden: { y: 20, opacity: 0 },
+    visible: { y: 0, opacity: 1 },
+    hover: { 
+      y: -10, 
+      transition: { 
+        type: "spring", 
+        stiffness: 400, 
+        damping: 10 
+      } 
+    }
+  };
+  
+  const tabVariants = {
+    inactive: { opacity: 0, y: 10, display: "none" },
+    active: { 
+      opacity: 1, 
+      y: 0, 
+      display: "flex",
+      transition: { 
+        type: "spring", 
+        stiffness: 300, 
+        damping: 24 
+      }
+    }
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-b from-background to-background/90">
@@ -245,6 +318,441 @@ export default function LandingPage() {
           )}
         </AnimatePresence>
       </section>
+
+      {/* <section className="w-full py-12 md:py-24 lg:py-32 bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+      <div className="container px-4 md:px-6 max-w-6xl">
+        <div className="grid gap-8 lg:grid-cols-2 lg:gap-16">
+          <div className="space-y-6">
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Intelligent Risk-Managed Trading System
+            </h2>
+            
+            <div className="space-y-4">
+              <h3 className="text-2xl font-semibold">Why Monte Carlo Simulation?</h3>
+              <article className="prose prose-gray dark:prose-invert">
+                <p>
+                  Our novel integration of Monte Carlo methods revolutionizes automated trading by providing dynamic risk assessment. 
+                  While traditional systems use static risk parameters, our solution performs 10,000+ market scenario simulations 
+                  for every potential trade, analyzing:
+                </p>
+                <ul>
+                  <li>Price volatility distributions</li>
+                  <li>Black swan event probabilities</li>
+                  <li>Correlated asset movements</li>
+                  <li>Liquidity shock scenarios</li>
+                </ul>
+                <p>
+                  This probabilistic approach enables our AI to <strong>quantify uncertainty</strong> in ways deterministic models cannot. 
+                  When combined with LSTM price predictions and RSI technical signals, we create three layers of protection:
+                </p>
+              </article>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-blue-100 dark:border-gray-700">
+                <div className="text-blue-600 dark:text-blue-400 mb-2">
+                  <TrendingUp className="h-6 w-6" />
+                </div>
+                <h4 className="font-semibold">RSI Signals</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Entry/Exit Timing</p>
+              </div>
+              
+              <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-purple-100 dark:border-gray-700">
+                <div className="text-purple-600 dark:text-purple-400 mb-2">
+                  <Activity className="h-6 w-6" />
+                </div>
+                <h4 className="font-semibold">LSTM Network</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Price Forecasting</p>
+              </div>
+              
+              <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-green-100 dark:border-gray-700">
+                <div className="text-green-600 dark:text-green-400 mb-2">
+                  <Shield className="h-6 w-6" />
+                </div>
+                <h4 className="font-semibold">Monte Carlo</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Risk Simulation</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section> */}
+    <section className="w-full py-12 md:py-24 lg:py-32">
+      <div className="container px-4 md:px-6 max-w-6xl mx-auto">
+        <motion.div 
+          className="text-center mb-12"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          variants={fadeIn}
+        >
+          <motion.div 
+            className="inline-block px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-sm font-medium mb-4"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            Proprietary Technology
+          </motion.div>
+          <motion.h2 
+            className="text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.6 }}
+            viewport={{ once: true }}
+          >
+            Intelligent Risk-Managed Trading System
+          </motion.h2>
+          <motion.p 
+            className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.6 }}
+            viewport={{ once: true }}
+          >
+            Our AI-powered platform combines advanced predictive models with sophisticated risk management to deliver exceptional trading results
+          </motion.p>
+        </motion.div>
+        
+        <div className="grid gap-8 lg:grid-cols-2 lg:gap-16 items-center mb-16">
+          <motion.div 
+            className="order-2 lg:order-1"
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+          >
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+              <div className="flex space-x-2 mb-4">
+                {["overview", "performance", "simulation"].map((tab) => (
+                  <motion.button 
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === tab ? "bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200" : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"}`}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  </motion.button>
+                ))}
+              </div>
+              
+              <div className="relative h-64">
+                <motion.div 
+                  className="h-64 flex items-center justify-center relative overflow-hidden rounded-lg bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900"
+                  variants={tabVariants}
+                  initial="inactive"
+                  animate={activeTab === "overview" ? "active" : "inactive"}
+                  key="overview"
+                >
+                  <div className="absolute inset-0 opacity-30">
+                    <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
+                      <motion.path 
+                        d="M0,50 Q25,30 50,50 T100,50 L100,100 L0,100 Z" 
+                        fill="url(#gradient1)"
+                        initial={{ y: 20, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ duration: 1.5, repeat: Infinity, repeatType: "reverse" }}
+                      />
+                      <motion.path 
+                        d="M0,70 Q25,50 50,70 T100,70 L100,100 L0,100 Z" 
+                        fill="url(#gradient2)" 
+                        opacity="0.8"
+                        initial={{ y: 0 }}
+                        animate={{ y: [0, -5, 0] }}
+                        transition={{ duration: 3, repeat: Infinity, repeatType: "reverse" }}
+                      />
+                      <defs>
+                        <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="0%">
+                          <stop offset="0%" stopColor="#3b82f6" />
+                          <stop offset="100%" stopColor="#8b5cf6" />
+                        </linearGradient>
+                        <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="0%">
+                          <stop offset="0%" stopColor="#8b5cf6" />
+                          <stop offset="100%" stopColor="#ec4899" />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                  </div>
+                  <div className="z-10 text-center p-6">
+                    <motion.h3 
+                      className="text-2xl font-bold mb-2"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2, duration: 0.5 }}
+                    >
+                      Triple-Layer Protection
+                    </motion.h3>
+                    <motion.p 
+                      className="text-gray-600 dark:text-gray-400"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.4, duration: 0.5 }}
+                    >
+                      Our system combines technical indicators, neural networks, and advanced risk modeling
+                    </motion.p>
+                  </div>
+                </motion.div>
+                
+                <motion.div 
+                  className="h-64 flex flex-col justify-center absolute top-0 left-0 right-0"
+                  variants={tabVariants}
+                  initial="inactive"
+                  animate={activeTab === "performance" ? "active" : "inactive"}
+                  key="performance"
+                >
+                  <div className="w-full h-full flex">
+                    {sampleData.map((item, index) => (
+                      <div key={index} className="flex-1 flex flex-col items-center justify-end">
+                        <motion.div 
+                          className="w-full mx-1 rounded-t-sm"
+                          style={{ 
+                            background: `linear-gradient(to top, #3b82f6, #8b5cf6)`,
+                            height: "0%"
+                          }}
+                          animate={{ 
+                            height: `${item.value}%`
+                          }}
+                          transition={{ 
+                            duration: 0.8, 
+                            delay: index * 0.1,
+                            type: "spring",
+                            stiffness: 50
+                          }}
+                        />
+                        <motion.span 
+                          className="text-xs mt-1 text-gray-600 dark:text-gray-400"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: 0.7 + index * 0.1 }}
+                        >
+                          {item.name}
+                        </motion.span>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+                
+                <motion.div 
+                  className="h-64 flex items-center justify-center absolute top-0 left-0 right-0"
+                  variants={tabVariants}
+                  initial="inactive"
+                  animate={activeTab === "simulation" ? "active" : "inactive"}
+                  key="simulation"
+                >
+                  <div className="relative w-48 h-48">
+                    <svg viewBox="0 0 100 100">
+                      <circle cx="50" cy="50" r="40" fill="none" stroke="#e5e7eb" strokeWidth="10" />
+                      
+                      {riskScenarios.map((scenario, index) => {
+                        const previousValues = riskScenarios.slice(0, index).reduce((sum, item) => sum + item.value, 0);
+                        const dashArray = 251.2;
+                        const dashOffset = dashArray;
+                        const finalDashOffset = dashArray - (dashArray * scenario.value) / 100;
+                        const rotation = (previousValues * 3.6) - 90;
+                        
+                        return (
+                          <motion.circle 
+                            key={index}
+                            cx="50" 
+                            cy="50" 
+                            r="40" 
+                            fill="none" 
+                            stroke={scenario.color}
+                            strokeWidth="10" 
+                            strokeDasharray={dashArray}
+                            initial={{ strokeDashoffset: dashArray }}
+                            animate={{ strokeDashoffset: finalDashOffset }}
+                            transition={{ 
+                              duration: 1.5, 
+                              delay: index * 0.3,
+                              ease: "easeOut" 
+                            }}
+                            transform={`rotate(${rotation} 50 50)`}
+                          />
+                        );
+                      })}
+                    </svg>
+                    <motion.div 
+                      className="absolute inset-0 flex items-center justify-center"
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.9, duration: 0.5 }}
+                    >
+                      <div className="text-center">
+                        <motion.span 
+                          className="block text-3xl font-bold"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: 1.2 }}
+                        >
+                          10k+
+                        </motion.span>
+                        <span className="text-sm text-gray-600 dark:text-gray-400">Simulations</span>
+                      </div>
+                    </motion.div>
+                  </div>
+                </motion.div>
+              </div>
+            </div>
+          </motion.div>
+          
+          <motion.div 
+            className="space-y-6 order-1 lg:order-2"
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
+            <motion.h3 
+              className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
+              variants={itemVariant}
+            >
+              Why Monte Carlo Simulation?
+            </motion.h3>
+            <motion.p 
+              className="text-gray-700 dark:text-gray-300"
+              variants={itemVariant}
+            >
+              Our novel integration of Monte Carlo methods revolutionizes automated trading by providing dynamic risk assessment in real-time market conditions.
+            </motion.p>
+            
+            <motion.div 
+              className="space-y-4"
+              variants={staggerContainer}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-100px" }}
+            >
+              {[
+                {
+                  title: "Beyond Static Risk Parameters",
+                  description: "While traditional systems rely on fixed risk thresholds, our platform runs 10,000+ scenario simulations for each potential trade."
+                },
+                {
+                  title: "Comprehensive Risk Analysis",
+                  description: "Our system analyzes price volatility distributions, black swan event probabilities, correlated asset movements, and liquidity shock scenarios."
+                },
+                {
+                  title: "Quantifiable Uncertainty",
+                  description: "This probabilistic approach enables our AI to quantify uncertainty in ways deterministic models cannot match."
+                }
+              ].map((item, index) => (
+                <motion.div 
+                  className="flex"
+                  key={index}
+                  variants={itemVariant}
+                  custom={index}
+                >
+                  <motion.div 
+                    className="flex-shrink-0 h-6 w-6 flex items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-200 mr-3"
+                    whileHover={{ scale: 1.2, rotate: 5 }}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </motion.div>
+                  <div>
+                    <h4 className="font-semibold mb-1">{item.title}</h4>
+                    <p className="text-gray-600 dark:text-gray-400">
+                      {item.description}
+                    </p>
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+          </motion.div>
+        </div>
+        
+        <motion.div 
+          className="grid grid-cols-1 md:grid-cols-3 gap-6"
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-50px" }}
+        >
+          {[
+            {
+              icon: <TrendingUp className="h-6 w-6" />,
+              title: "RSI Signals",
+              description: "Adaptive technical indicators identify optimal entry and exit points across timeframes",
+              label: "Entry/Exit Precision",
+              color: "blue"
+            },
+            {
+              icon: <Activity className="h-6 w-6" />,
+              title: "LSTM Network",
+              description: "Deep learning models predict price movements by analyzing complex market patterns and relationships",
+              label: "Price Forecasting",
+              color: "purple"
+            },
+            {
+              icon: <Shield className="h-6 w-6" />,
+              title: "Monte Carlo",
+              description: "Powerful probabilistic modeling simulates thousands of market scenarios to quantify potential outcomes",
+              label: "Risk Simulation",
+              color: "green"
+            }
+          ].map((card, index) => (
+            <motion.div
+              key={index}
+              className={`p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-${card.color}-100 dark:border-${card.color}-900`}
+              variants={cardVariant}
+              whileHover="hover"
+              custom={index}
+            >
+              <motion.div 
+                className={`w-12 h-12 rounded-full bg-${card.color}-100 dark:bg-${card.color}-900 flex items-center justify-center text-${card.color}-600 dark:text-${card.color}-200 mb-4`}
+                whileHover={{ rotate: 360 }}
+                transition={{ duration: 0.6 }}
+              >
+                {card.icon}
+              </motion.div>
+              <motion.h4 
+                className="text-xl font-bold mb-2"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3 + index * 0.1 }}
+              >
+                {card.title}
+              </motion.h4>
+              <motion.p 
+                className="text-gray-600 dark:text-gray-400 mb-4"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 + index * 0.1 }}
+              >
+                {card.description}
+              </motion.p>
+              <motion.div 
+                className={`flex items-center text-sm text-${card.color}-600 dark:text-${card.color}-400 font-medium`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 + index * 0.1 }}
+              >
+                <span>{card.label}</span>
+                <Zap className="ml-1 h-4 w-4" />
+              </motion.div>
+            </motion.div>
+          ))}
+        </motion.div>
+        
+        <motion.div 
+          className="mt-16 text-center"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          viewport={{ once: true }}
+        >
+          <motion.a 
+            href="#" 
+            className="inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-3 text-white font-medium shadow-lg hover:from-blue-700 hover:to-purple-700"
+            whileHover={{ scale: 1.05, boxShadow: "0 10px 25px -5px rgba(59, 130, 246, 0.5)" }}
+            whileTap={{ scale: 0.95 }}
+          >
+            Learn How It Works
+          </motion.a>
+        </motion.div>
+      </div>
+    </section>
 
       {/* Features Section with Scroll Animations */}
       <section className="py-20 px-4 relative" ref={featuresRef} id="features">
