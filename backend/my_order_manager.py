@@ -172,12 +172,12 @@ def generate_order(lstm_data, indicator_data, monte_carlo_data):
         print(f"MAX RISK AMOUNT: ${risk_amount:.2f}")
         
         # Get AI-generated justification
-        # justification = get_justification(lstm_data, indicator_data, monte_carlo_data, order)
-        # print("\n============ TRADE JUSTIFICATION ============")
-        # print(justification)
+        justification = get_justification(lstm_data, indicator_data, monte_carlo_data, order)
+        print("\n============ TRADE JUSTIFICATION ============")
+        print(justification)
         
         # Add justification to order data
-        # order["justification"] = justification
+        order["justification"] = justification
     else:
         print("Decision: NO ORDER - Combined signals are not strong enough for a buy")
     

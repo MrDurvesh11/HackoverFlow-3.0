@@ -121,13 +121,14 @@ def start_websocket_server():
     print("WebSocket server thread started")
 
 # Function to send data through WebSocket
-def send_analysis_data(lstm_data, indicator_data, monte_carlo_data):
+def send_analysis_data(lstm_data, indicator_data, monte_carlo_data, order):
     """Package and send analysis data through WebSocket"""
     analysis_data = {
         'timestamp': int(time.time() * 1000),
         'lstm': lstm_data,
         'indicators': indicator_data,
-        'monte_carlo': monte_carlo_data
+        'monte_carlo': monte_carlo_data,
+        'order': order
     }
     
     # Run the broadcast in a separate thread to avoid blocking
@@ -585,11 +586,14 @@ def on_message(ws, message):
         # call monte carlo function
         monte_carlo_response = get_monte_carlo_data(candles)
         
-        # Send analysis data through WebSocket
-        send_analysis_data(lstm_response, indicator_response, monte_carlo_response)
-        
         # Generate trading order based on analysis results
         order = generate_order(lstm_response, indicator_response, monte_carlo_response)
+        
+        # Make a copy of the order to send via WebSocket (to preserve justification)
+        order_copy = order.copy() if order else None
+        
+        # Send analysis data through WebSocket
+        send_analysis_data(lstm_response, indicator_response, monte_carlo_response, order_copy)
         
         # Execute order if generated
         if order:
