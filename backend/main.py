@@ -2,8 +2,8 @@ import websocket
 import json
 import requests
 import time
-import numpy as np
 import pandas as pd
+import numpy as np
 import pandas_ta as ta
 from collections import deque
 import os
@@ -13,9 +13,14 @@ from my_indicator import get_indicator_data
 from my_monte_carlo import get_monte_carlo_data
 from my_order_manager import generate_order
 from binance_client import BinanceTestnetClient
+from trade_tracker import log_trade, generate_performance_summary, initialize_csv
 import math
 import threading
-from datetime import datetime
+from datetime import datetime, timedelta
+# Add imports for WebSocket server
+import asyncio
+from websockets.server import serve
+import threading
 
 # Load environment variables from .env file
 load_dotenv()
@@ -42,6 +47,97 @@ TRADING_INTERVAL = "1m"
 active_trades = []
 trade_monitor_running = False
 trade_monitor_thread = None
+
+# WebSocket server configuration
+WS_SERVER_HOST = 'localhost'
+WS_SERVER_PORT = 8765
+connected_clients = set()
+websocket_server_running = False
+
+# Function to handle WebSocket server connections
+async def handle_client_connection(websocket, path):
+    """Handle new WebSocket client connections"""
+    global connected_clients
+    # Register client
+    connected_clients.add(websocket)
+    print(f"New client connected. Total clients: {len(connected_clients)}")
+    
+    try:
+        # Keep the connection alive and handle any incoming messages
+        async for message in websocket:
+            # We can process any incoming messages here if needed
+            pass
+    except Exception as e:
+        print(f"WebSocket client error: {e}")
+    finally:
+        # Unregister client when disconnected
+        connected_clients.remove(websocket)
+        print(f"Client disconnected. Remaining clients: {len(connected_clients)}")
+
+# Function to broadcast data to all connected clients
+async def broadcast_data(data):
+    """Send data to all connected WebSocket clients"""
+    if not connected_clients:
+        return  # No clients connected
+    
+    # Convert data to JSON string
+    json_data = json.dumps(data)
+    
+    # Send to all connected clients
+    disconnected = set()
+    for client in connected_clients:
+        try:
+            await client.send(json_data)
+        except Exception as e:
+            print(f"Error sending to client: {e}")
+            disconnected.add(client)
+    
+    # Remove disconnected clients
+    for client in disconnected:
+        connected_clients.remove(client)
+
+# Function to run WebSocket server
+async def run_websocket_server():
+    """Start and run the WebSocket server"""
+    global websocket_server_running
+    websocket_server_running = True
+    
+    async with serve(handle_client_connection, WS_SERVER_HOST, WS_SERVER_PORT):
+        print(f"WebSocket server started at ws://{WS_SERVER_HOST}:{WS_SERVER_PORT}")
+        # Keep the server running indefinitely
+        while websocket_server_running:
+            await asyncio.sleep(1)
+
+# Function to start WebSocket server in a separate thread
+def start_websocket_server():
+    """Start WebSocket server in a background thread"""
+    def run():
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(run_websocket_server())
+    
+    ws_thread = threading.Thread(target=run, daemon=True)
+    ws_thread.start()
+    print("WebSocket server thread started")
+
+# Function to send data through WebSocket
+def send_analysis_data(lstm_data, indicator_data, monte_carlo_data, order):
+    """Package and send analysis data through WebSocket"""
+    analysis_data = {
+        'timestamp': int(time.time() * 1000),
+        'lstm': lstm_data,
+        'indicators': indicator_data,
+        'monte_carlo': monte_carlo_data,
+        'order': order
+    }
+    
+    # Run the broadcast in a separate thread to avoid blocking
+    def broadcast():
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(broadcast_data(analysis_data))
+    
+    threading.Thread(target=broadcast, daemon=True).start()
 
 def calculate_indicators(candle_data):
     """
@@ -88,6 +184,44 @@ def get_account_balance(asset="USDT"):
     print(f"Locked: {balance['locked']:.2f} {asset}")
     return balance
 
+def initialize_active_trades():
+    """Check BTC balance and sell if over 1.0 BTC threshold"""
+    print("\n============ CHECKING BTC BALANCE ============")
+    try:
+        # Get current account balances to check for existing positions
+        btc_balance = client.get_balance("BTC")
+        btc_free = btc_balance['free']
+        btc_locked = btc_balance['locked']
+        total_btc = btc_free + btc_locked
+        
+        print(f"Current BTC position: {total_btc} BTC (Free: {btc_free}, Locked: {btc_locked})")
+        
+        # If BTC balance is over 1.0, immediately sell it
+        if total_btc > 1.0:
+            print(f"Found BTC balance over threshold: {total_btc} BTC - Executing market sell")
+            
+            # Only sell the free balance that we can access (not locked in orders)
+            if btc_free > 0:
+                # Execute market sell for all free BTC
+                sell_result = client.place_market_sell_order(
+                    symbol=TRADING_SYMBOL,
+                    quantity=str(btc_free)
+                )
+                print(f"Market sell executed: {sell_result}")
+                
+                if 'orderId' in sell_result and not 'code' in sell_result:
+                    print(f"Successfully sold {btc_free} BTC")
+                else:
+                    print(f"Error selling BTC: {sell_result}")
+            else:
+                print("No free BTC available to sell (all locked in orders)")
+        elif total_btc > 0:
+            print(f"BTC balance of {total_btc} is below the threshold of 1.0 BTC. No action taken.")
+        else:
+            print("No BTC balance found.")
+    except Exception as e:
+        print(f"Error checking BTC balance: {e}")
+
 def monitor_active_trades():
     """Continuously monitor active trades for target and stop loss hits"""
     global active_trades, trade_monitor_running
@@ -115,10 +249,61 @@ def monitor_active_trades():
                 quantity = trade['quantity']
                 take_profit = trade['take_profit']
                 stop_loss = trade['stop_loss']
+                entry_time = datetime.strptime(trade['time'], "%Y-%m-%d %H:%M:%S") if 'time' in trade else None
                 
                 # Skip trades that are already being processed
                 if trade.get('being_processed', False):
                     continue
+                
+                print(f"Checking trade: ID={order_id}, Entry=${entry_price:.2f}, "
+                      f"Current=${current_price:.2f}, TP=${take_profit:.2f}, SL=${stop_loss:.2f}")
+                
+                # For newly placed limit orders, check if they're filled before monitoring SL/TP
+                if not trade.get('existing_position', False) and not trade.get('confirmed_filled', False):
+                    # Check if the original buy order has been filled first
+                    order_status = client.get_order_status(TRADING_SYMBOL, order_id)
+                    
+                    if 'status' in order_status and order_status['status'] == 'FILLED':
+                        print(f"Order {order_id} is now filled. Monitoring stop loss and take profit.")
+                        trade['confirmed_filled'] = True
+                    else:
+                        print(f"Order {order_id} is not filled yet. Status: {order_status.get('status', 'Unknown')}")
+                        
+                        # Check if order has been in NEW status for more than 10 minutes
+                        if order_status.get('status') == 'NEW' and entry_time:
+                            current_time = datetime.now()
+                            order_age_minutes = (current_time - entry_time).total_seconds() / 60
+                            
+                            # If order is older than 10 minutes, cancel it
+                            if order_age_minutes > 10:
+                                print(f"\n============ ORDER EXPIRATION ============")
+                                print(f"Order {order_id} has not been filled after {order_age_minutes:.1f} minutes. Cancelling.")
+                                
+                                # Mark as being processed
+                                trade['being_processed'] = True
+                                
+                                try:
+                                    # Cancel the order
+                                    cancel_result = client.cancel_order(
+                                        symbol=TRADING_SYMBOL,
+                                        order_id=order_id
+                                    )
+                                    
+                                    print(f"Order cancellation result: {cancel_result}")
+                                    
+                                    # Remove from active trades if successful
+                                    if not 'code' in cancel_result:
+                                        active_trades.remove(trade)
+                                        print(f"Trade {order_id} removed from monitoring (expired after 10 minutes)")
+                                    else:
+                                        # Failed, unmark as being processed
+                                        trade['being_processed'] = False
+                                        print(f"Failed to cancel order {order_id}: {cancel_result}")
+                                except Exception as e:
+                                    print(f"Error cancelling expired order: {e}")
+                                    trade['being_processed'] = False
+                        
+                        continue  # Skip this trade until it's filled or cancelled
                 
                 # Check if target price is hit (take profit)
                 if current_price >= take_profit:
@@ -135,6 +320,19 @@ def monitor_active_trades():
                             quantity=quantity
                         )
                         print(f"Take profit sell executed: {sell_result}")
+                        
+                        # Record the trade in our CSV history
+                        log_trade(
+                            order_id=order_id,
+                            symbol=TRADING_SYMBOL,
+                            entry_price=entry_price,
+                            exit_price=current_price, 
+                            quantity=quantity,
+                            take_profit_price=take_profit,
+                            stop_loss_price=stop_loss,
+                            exit_type='TAKE_PROFIT',
+                            entry_time=entry_time
+                        )
                         
                         # Remove from active trades if successful
                         if 'orderId' in sell_result and not 'code' in sell_result:
@@ -163,6 +361,19 @@ def monitor_active_trades():
                         )
                         print(f"Stop loss sell executed: {sell_result}")
                         
+                        # Record the trade in our CSV history
+                        log_trade(
+                            order_id=order_id,
+                            symbol=TRADING_SYMBOL,
+                            entry_price=entry_price,
+                            exit_price=current_price, 
+                            quantity=quantity,
+                            take_profit_price=take_profit,
+                            stop_loss_price=stop_loss,
+                            exit_type='STOP_LOSS',
+                            entry_time=entry_time
+                        )
+                        
                         # Remove from active trades if successful
                         if 'orderId' in sell_result and not 'code' in sell_result:
                             active_trades.remove(trade)
@@ -182,6 +393,11 @@ def monitor_active_trades():
             time.sleep(10)  # Longer wait on error
     
     print("\n============ TRADE MONITOR STOPPED ============")
+
+# Add new function to generate performance reports
+def print_performance_report():
+    """Generate and print a performance report"""
+    return generate_performance_summary()
 
 def start_trade_monitor():
     """Start the trade monitoring thread if not already running"""
@@ -289,24 +505,31 @@ def execute_order(order):
             # Start the trade monitor if not already running
             start_trade_monitor()
             
-            # Add this trade to our monitoring list
-            new_trade = {
-                'order_id': main_order_result.get('orderId'),
-                'symbol': order['symbol'],
-                'entry_price': float(order['price']),
-                'quantity': order['quantity'],
-                'take_profit': float(order['takeProfit']),
-                'stop_loss': float(order['stopLoss']),
-                'time': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                'being_processed': False
-            }
-            
-            active_trades.append(new_trade)
-            print(f"\n============ TRADE ADDED TO MONITORING ============")
-            print(f"Order ID: {new_trade['order_id']}")
-            print(f"Entry: ${new_trade['entry_price']}")
-            print(f"Target: ${new_trade['take_profit']}")
-            print(f"Stop Loss: ${new_trade['stop_loss']}")
+            # Only add to active trades if it's a new buy order (not a market sell)
+            if order['side'] == 'BUY':
+                # Add this trade to our monitoring list
+                new_trade = {
+                    'order_id': main_order_result.get('orderId'),
+                    'symbol': order['symbol'],
+                    'entry_price': float(order['price']),
+                    'quantity': order['quantity'],
+                    'take_profit': float(order['takeProfit']),
+                    'stop_loss': float(order['stopLoss']),
+                    'time': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    'being_processed': False,
+                    'confirmed_filled': main_order_result.get('status') == 'FILLED'
+                }
+                
+                # Print expiration time notice
+                expiration_time = (datetime.now() + timedelta(minutes=10)).strftime("%Y-%m-%d %H:%M:%S")
+                print(f"Order will expire if not filled by: {expiration_time}")
+                
+                active_trades.append(new_trade)
+                print(f"\n============ TRADE ADDED TO MONITORING ============")
+                print(f"Order ID: {new_trade['order_id']}")
+                print(f"Entry: ${new_trade['entry_price']}")
+                print(f"Target: ${new_trade['take_profit']}")
+                print(f"Stop Loss: ${new_trade['stop_loss']}")
         
         # Print the trade justification
         print("\n============ TRADE JUSTIFICATION ============")
@@ -366,6 +589,12 @@ def on_message(ws, message):
         # Generate trading order based on analysis results
         order = generate_order(lstm_response, indicator_response, monte_carlo_response)
         
+        # Make a copy of the order to send via WebSocket (to preserve justification)
+        order_copy = order.copy() if order else None
+        
+        # Send analysis data through WebSocket
+        send_analysis_data(lstm_response, indicator_response, monte_carlo_response, order_copy)
+        
         # Execute order if generated
         if order:
             execution_result = execute_order(order)
@@ -386,8 +615,8 @@ def main():
     global candles, historical_data
     
     try:
-        # Start trade monitoring thread
-        start_trade_monitor()
+        # Initialize the trade history CSV file
+        initialize_csv()
         
         # Verify API key is working by getting account info
         account_info = client.get_account_info()
@@ -397,6 +626,16 @@ def main():
         # Display initial balance
         get_account_balance("USDT")
         get_account_balance("BTC")
+        
+        # Check for BTC balance > 1.0 and sell immediately
+        initialize_active_trades()
+        
+        # Start trade monitoring thread (this is important for monitoring new orders)
+        start_trade_monitor()
+        
+        # Start WebSocket server for transmitting analysis data
+        start_websocket_server()
+        print(f"WebSocket analysis server available at ws://{WS_SERVER_HOST}:{WS_SERVER_PORT}")
         
         # Fetch historical candle data before starting WebSocket connection
         symbol = TRADING_SYMBOL.lower()
@@ -426,9 +665,11 @@ def main():
     except KeyboardInterrupt:
         print("Shutting down gracefully...")
         stop_trade_monitor()
+        websocket_server_running = False
     except Exception as e:
         print(f"Unexpected error: {e}")
         stop_trade_monitor()
+        websocket_server_running = False
 
 if __name__ == "__main__":
     main()

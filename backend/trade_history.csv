@@ -1,0 +1,1 @@
+order_id,timestamp,symbol,entry_price,exit_price,quantity,pnl,percentage_gain,take_profit_price,stop_loss_price,trade_duration_minutes,result
