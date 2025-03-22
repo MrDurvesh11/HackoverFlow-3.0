@@ -13,6 +13,7 @@ import { StockChart } from "@/components/stock-chart"
 import { CryptoChart } from "@/components/crypto-chart"
 import { StrategySettingsModal } from "@/components/ai-setting-dialog"
 import { Sidebar } from "@/components/sidebar"
+import { TradingSignals } from "@/components/trading-signals"
 
 export default function AlgoTrading() {
   const [activeTab, setActiveTab] = useState("strategies")
@@ -117,6 +118,7 @@ export default function AlgoTrading() {
             <TabsTrigger value="strategies">Active Strategies</TabsTrigger>
             <TabsTrigger value="backtest">Backtesting</TabsTrigger>
             <TabsTrigger value="logs">Trade Logs</TabsTrigger>
+            <TabsTrigger value="signals">Live Signals</TabsTrigger>
           </TabsList>
 
           <TabsContent value="strategies" className="mt-4 space-y-4">
@@ -660,6 +662,9 @@ export default function AlgoTrading() {
                 </Button>
               </CardFooter>
             </Card>
+          </TabsContent>
+          <TabsContent value="signals" className="mt-4">
+            <TradingSignals />
           </TabsContent>
         </Tabs>
       </div>
