@@ -4,8 +4,10 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { AlertTriangle, ArrowDown, ArrowUp, TrendingUp } from "lucide-react"
+import { AlertTriangle, ArrowDown, ArrowUp, HelpCircle, TrendingUp } from "lucide-react"
 import { Progress } from "@/components/ui/progress"
+import { Button } from "./ui/button"
+import { TradingJustificationModal } from "./trading-justification-modal"
 
 // Sample fallback data to use when WebSocket isn't connected
 const SAMPLE_DATA = {
@@ -76,6 +78,7 @@ export function TradingSignals() {
   const [error, setError] = useState(null)
   const [lastUpdated, setLastUpdated] = useState(null)
   const [useDemoData, setUseDemoData] = useState(false)
+  const [justificationModalOpen, setJustificationModalOpen] = useState(false)
 
   useEffect(() => {
     let ws
@@ -256,6 +259,18 @@ export function TradingSignals() {
               {lastUpdated ? `Last updated: ${lastUpdated.toLocaleTimeString()}` : "Waiting for data..."}
             </CardDescription>
           </div>
+
+          {signalData && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setJustificationModalOpen(true)}
+                className="gap-1"
+              >
+                <HelpCircle className="h-3.5 w-3.5" />
+                <span>Why?</span>
+              </Button>
+            )}
         </div>
       </CardHeader>
 
@@ -432,6 +447,15 @@ export function TradingSignals() {
           </div>
         )}
       </CardContent>
+
+      {/* Add the Trading Justification Modal */}
+      {signalData && (
+        <TradingJustificationModal
+          open={justificationModalOpen}
+          onOpenChange={setJustificationModalOpen}
+          orderData={signalData.order}
+        />
+      )}
     </Card>
   )
 }
