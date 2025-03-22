@@ -16,7 +16,7 @@ from binance_client import BinanceTestnetClient
 from trade_tracker import log_trade, generate_performance_summary, initialize_csv
 import math
 import threading
-from datetime import datetime
+from datetime import datetime, timedelta
 # Add imports for WebSocket server
 import asyncio
 from websockets.server import serve
@@ -521,7 +521,7 @@ def execute_order(order):
                 }
                 
                 # Print expiration time notice
-                expiration_time = (datetime.now() + datetime.timedelta(minutes=10)).strftime("%Y-%m-%d %H:%M:%S")
+                expiration_time = (datetime.now() + timedelta(minutes=10)).strftime("%Y-%m-%d %H:%M:%S")
                 print(f"Order will expire if not filled by: {expiration_time}")
                 
                 active_trades.append(new_trade)
