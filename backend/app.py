@@ -17,7 +17,7 @@ api_key = os.getenv("api_key")
 api_secret = os.getenv("api_secret")
 
 # Initialize Binance client for testnet
-client = Client(api_key, api_secret, testnet=True)
+client = Client('GiSEgThuzY1dnDTXiAEzQOp1BCmKWfrZnqNBvKypwQVd9sJoqtpyP9dripSiKk7Z', 'OA4HIvrcLe96UGgtnXgXksKghrLKyhHRqnxa93Fy6ulnfsppFD0MBGfD6OE39x5K', testnet=True)
 
 # Trading parameters - configurable via API
 trading_config = {
