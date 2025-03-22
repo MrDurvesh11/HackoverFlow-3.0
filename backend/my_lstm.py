@@ -192,25 +192,57 @@ def get_lstm_output(candles):
         else:
             trend = "SIDEWAYS"
         
-        # Calculate target price based on trend direction
+        # Calculate target price based on trend direction and projection
+        target_candle = 0
+        target_confidence = 0.0
+        
+        # Base confidence on trend strength but ensure it's between 0.2 and 1.0
+        confidence = min(trend_strength * 0.8 + 0.2, 1.0)  # Scale 0-1
+        
         if "UPTREND" in trend:
-            # For uptrends, target is the maximum predicted price
-            target_price = float(np.max(predicted_prices))
-            target_candle = int(np.argmax(predicted_prices)) + 1  # +1 to make it 1-indexed
-            target_change = target_price - last_known_price
-            target_percentage = (target_change / last_known_price) * 100
+            # For uptrends, use a combination of linear projection and conservative estimate
+            if trend_strength > 0.6 and slope > 0:
+                # Strong trend: project using linear regression with some dampening
+                projection_point = forecast_horizon + 2  # Project slightly beyond our forecast
+                projected_price = intercept + slope * projection_point
+                # Apply dampening factor based on confidence
+                dampening = 0.7 + (0.3 * confidence)
+                final_projection = last_known_price + (projected_price - last_known_price) * dampening
+                target_price = float(min(final_projection, np.max(predicted_prices) * 1.05))
+                target_candle = min(forecast_horizon, int(projection_point))
+            else:
+                # Weaker trend: use a weighted average of max and mean predicted prices
+                max_price = np.max(predicted_prices)
+                max_idx = np.argmax(predicted_prices)
+                weight = 0.5 + (0.5 * confidence)
+                target_price = float(weight * max_price + (1-weight) * avg_predicted_price)
+                target_candle = int(max_idx) + 1  # +1 for 1-based indexing
         elif "DOWNTREND" in trend:
-            # For downtrends, target is the minimum predicted price
-            target_price = float(np.min(predicted_prices))
-            target_candle = int(np.argmin(predicted_prices)) + 1  # +1 to make it 1-indexed
-            target_change = target_price - last_known_price
-            target_percentage = (target_change / last_known_price) * 100
-        else:  # SIDEWAYS
-            # For simplicity in return value, use avg_predicted_price as the target
+            # For downtrends, use similar logic but look for minimum prices
+            if trend_strength > 0.6 and slope < 0:
+                projection_point = forecast_horizon + 2
+                projected_price = intercept + slope * projection_point
+                dampening = 0.7 + (0.3 * confidence)
+                final_projection = last_known_price + (projected_price - last_known_price) * dampening
+                target_price = float(max(final_projection, np.min(predicted_prices) * 0.95))
+                target_candle = min(forecast_horizon, int(projection_point))
+            else:
+                min_price = np.min(predicted_prices)
+                min_idx = np.argmin(predicted_prices)
+                weight = 0.5 + (0.5 * confidence)
+                target_price = float(weight * min_price + (1-weight) * avg_predicted_price)
+                target_candle = int(min_idx) + 1
+        else:
+            # Sideways market: use a narrow range around the average
             target_price = float(avg_predicted_price)
-            target_candle = int(len(predicted_prices) // 2)  # Middle of the forecast horizon
-            target_change = target_price - last_known_price
-            target_percentage = (target_change / last_known_price) * 100
+            # Find the candle closest to our target price
+            closest_idx = np.argmin(np.abs(predicted_prices - target_price))
+            target_candle = int(closest_idx) + 1
+        
+        # Calculate the target change and percentage
+        target_change = target_price - last_known_price
+        target_percentage = (target_change / last_known_price) * 100
+        target_confidence = confidence
         
         # Generate trading signal based on trend analysis
         if trend in ["STRONG_UPTREND", "UPTREND"]:
@@ -240,7 +272,7 @@ def get_lstm_output(candles):
         print(f"Trading signal: {signal}")
         print(f"Target price: ${target_price:.2f} (Candle {target_candle})")
         print(f"Target change: ${target_change:.2f} ({target_percentage:.2f}%)")
-        
+        print(f"Target confidence: {target_confidence:.2f}")
         
         return {
             "predicted_prices": predicted_prices.tolist(),
@@ -257,11 +289,13 @@ def get_lstm_output(candles):
             "target_price": target_price,
             "target_candle": target_candle,
             "target_change": float(target_change),
-            "target_percentage": float(target_percentage)
+            "target_percentage": float(target_percentage),
+            "target_confidence": target_confidence
         }
         
     except Exception as e:
         print(f"Error making LSTM prediction: {e}")
         import traceback
         traceback.print_exc()
+
         return None

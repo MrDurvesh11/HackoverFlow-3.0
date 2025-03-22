@@ -194,3 +194,4 @@ def plot_performance():
     plt.close()
     
     print(f"Performance charts saved to {chart_path}")
+    
