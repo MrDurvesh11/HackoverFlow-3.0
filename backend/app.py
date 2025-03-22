@@ -10,6 +10,7 @@ from binance.client import Client
 from binance.enums import *
 import pandas as pd
 from stock_analyzer import stock_analyzer
+from crypto_analyzer import crypto_analyzer
 
 load_dotenv()
 api_key = os.getenv("api_key")
@@ -51,6 +52,17 @@ def analyze_stock():
         return jsonify(result)
     except Exception as e:
         print(f"Error in analyze_stock: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+# Do for the stock_analyzer function
+@app.route('/analyze_crypto', methods=['POST'])
+def analyze_crypto():
+    try:
+        crypto_name = request.json['crypto_name']
+        result = crypto_analyzer(crypto_name)
+        return jsonify(result)
+    except Exception as e:
+        print(f"Error in analyze_crypto: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 def get_account_balance():

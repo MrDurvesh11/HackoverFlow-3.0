@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { usePathname } from "next/navigation"
-import Link from "next/link"
+import { usePathname } from "next/navigation";
+import Link from "next/link";
 import {
   BarChart3,
   Briefcase,
@@ -13,7 +13,7 @@ import {
   Settings,
   User,
   Zap,
-} from "lucide-react"
+} from "lucide-react";
 import {
   Sidebar as ShadcnSidebar,
   SidebarContent,
@@ -27,7 +27,7 @@ import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarGroupContent,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 import {
   ClerkProvider,
   SignInButton,
@@ -36,16 +36,16 @@ import {
   SignedOut,
   UserButton,
   useUser,
-} from '@clerk/nextjs'
+} from "@clerk/nextjs";
 
 // Adding React import and children type
-import React, { ReactNode } from "react"
+import React, { ReactNode } from "react";
 
 // Modify the Sidebar component to accept children
 export function Sidebar({ children }: { children: ReactNode }) {
-  const pathname = usePathname()
+  const pathname = usePathname();
 
-  const {user, isLoaded, isSignedIn} = useUser();
+  const { user, isLoaded, isSignedIn } = useUser();
   return (
     <SidebarProvider>
       {/* Main layout container for sidebar + content */}
@@ -71,7 +71,10 @@ export function Sidebar({ children }: { children: ReactNode }) {
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname === "/dashboard"}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={pathname === "/dashboard"}
+                    >
                       <Link href="/dashboard">
                         <Home className="w-4 h-4" />
                         <span>Dashboard</span>
@@ -80,7 +83,10 @@ export function Sidebar({ children }: { children: ReactNode }) {
                   </SidebarMenuItem>
 
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname === "/market-analysis"}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={pathname === "/market-analysis"}
+                    >
                       <Link href="/market-analysis">
                         <BarChart3 className="w-4 h-4" />
                         <span>Market Analysis</span>
@@ -89,7 +95,10 @@ export function Sidebar({ children }: { children: ReactNode }) {
                   </SidebarMenuItem>
 
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname === "/algo-trading"}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={pathname === "/algo-trading"}
+                    >
                       <Link href="/algo-trading">
                         <LineChart className="w-4 h-4" />
                         <span>Algo Trading</span>
@@ -98,7 +107,10 @@ export function Sidebar({ children }: { children: ReactNode }) {
                   </SidebarMenuItem>
 
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname === "/portfolio"}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={pathname === "/portfolio"}
+                    >
                       <Link href="/portfolio">
                         <Briefcase className="w-4 h-4" />
                         <span>Portfolio</span>
@@ -107,7 +119,10 @@ export function Sidebar({ children }: { children: ReactNode }) {
                   </SidebarMenuItem>
 
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname === "/transactions"}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={pathname === "/transactions"}
+                    >
                       <Link href="/transactions">
                         <CreditCard className="w-4 h-4" />
                         <span>Transactions</span>
@@ -123,7 +138,10 @@ export function Sidebar({ children }: { children: ReactNode }) {
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname === "/chatbot"}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={pathname === "/chatbot"}
+                    >
                       <Link href="/chatbot">
                         <MessageSquare className="w-4 h-4" />
                         <span>FinChatbot</span>
@@ -131,32 +149,24 @@ export function Sidebar({ children }: { children: ReactNode }) {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
 
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname === "/settings"}>
-                      <Link href="/settings">
-                        <Settings className="w-4 h-4" />
-                        <span>Settings</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname === "/settings"}>
-                    <div >
-                    <SignedOut>
-              <SignInButton />
-            </SignedOut>
-            <SignedIn>
-              { isLoaded && user && (
-                <div className="flex items-center gap-2">
-              <UserButton />
-              <span>{user.fullName}</span>
-              </div>
-              )
-}
-            </SignedIn>
-
-            </div>
+                  <SidebarMenuItem className="mt-5">
+                    <SidebarMenuButton
+                      asChild
+                      isActive={pathname === "/settings"}
+                    >
+                      <div>
+                        <SignedOut>
+                          <SignInButton />
+                        </SignedOut>
+                        <SignedIn>
+                          {isLoaded && user && (
+                            <div className="flex items-center gap-2">
+                              <UserButton />
+                              <span>{user.fullName}</span>
+                            </div>
+                          )}
+                        </SignedIn>
+                      </div>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 </SidebarMenu>
@@ -164,21 +174,17 @@ export function Sidebar({ children }: { children: ReactNode }) {
             </SidebarGroup>
           </SidebarContent>
 
-          <SidebarFooter className="p-4 border-t border-border/40">
-            
-          </SidebarFooter>
+          <SidebarFooter className="p-4 border-t border-border/40"></SidebarFooter>
         </ShadcnSidebar>
-        
+
         {/* Mobile trigger for the sidebar */}
         <div className="fixed top-4 left-4 z-50 md:hidden">
           <SidebarTrigger />
         </div>
-        
+
         {/* Main content area */}
-        <div className="flex-1 overflow-auto">
-          {children}
-        </div>
+        <div className="flex-1 overflow-auto">{children}</div>
       </div>
     </SidebarProvider>
-  )
+  );
 }
