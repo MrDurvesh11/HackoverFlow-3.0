@@ -1,3 +1,4 @@
+# my_jusitification.py
 import os
 from dotenv import load_dotenv
 import google.generativeai as genai
@@ -12,6 +13,7 @@ GEMINI_API_KEY = os.environ.get("GOOGLE_API_KEY", "your_api_key_here")
 genai.configure(api_key=GEMINI_API_KEY)
 
 def get_justification(lstm_data, indicator_data, monte_carlo_data, order_data):
+    from main import TRADING_SYMBOL
   
     print("\n============ JUSTIFICATION GENERATOR ============\n")
     """
@@ -70,7 +72,7 @@ def get_justification(lstm_data, indicator_data, monte_carlo_data, order_data):
     provide a concise, professional justification for the trading decision that has been made.
     
     Market Analysis:
-    - Current BTC Price: ${market_summary['current_price']:.2f}
+    - Current {TRADING_SYMBOL} Price: ${market_summary['current_price']:.2f}
     - LSTM Signal: {market_summary['lstm_signal']}
     - LSTM Trend: {market_summary['lstm_trend']} (Strength: {market_summary['lstm_trend_strength']:.2f})
     - LSTM Target Price: ${market_summary['target_price']:.2f}
@@ -87,7 +89,7 @@ def get_justification(lstm_data, indicator_data, monte_carlo_data, order_data):
     if order_data:
         prompt += f"""
         Order Details:
-        - Quantity: {order_summary['quantity']:.5f} BTC
+        - Quantity: {order_summary['quantity']} {TRADING_SYMBOL.replace('USDT', '')}
         - Entry Price: ${order_summary['entry_price']:.2f}
         - Stop Loss: ${order_summary['stop_loss']:.2f}
         - Take Profit: ${order_summary['take_profit']:.2f}

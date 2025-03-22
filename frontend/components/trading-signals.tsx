@@ -103,6 +103,7 @@ export function TradingSignals() {
         ws.onmessage = (event) => {
           try {
             const data = JSON.parse(event.data)
+            console.log(data);
             setSignalData(data)
             setLastUpdated(new Date())
             setUseDemoData(false)
@@ -453,7 +454,7 @@ export function TradingSignals() {
         <TradingJustificationModal
           open={justificationModalOpen}
           onOpenChange={setJustificationModalOpen}
-          orderData={signalData.order}
+          orderData={signalData.order.justification}
         />
       )}
     </Card>

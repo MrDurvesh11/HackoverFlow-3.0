@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { BarChart2, Brain, Calculator, ChevronRight, HelpCircle, LineChart, TrendingUp } from "lucide-react"
 
 export function TradingJustificationModal({ open, onOpenChange, orderData }) {
+  console.log(orderData)
   // Default dummy data
   const dummyData = {
     symbol: "BTCUSDT",
@@ -58,76 +59,30 @@ export function TradingJustificationModal({ open, onOpenChange, orderData }) {
 
   // Use the provided orderData or fallback to dummy data
   const data = orderData || dummyData
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             Trading Decision Justification
-            <Badge 
-              variant={data.side === "BUY" ? "success" : "destructive"} 
-              className="ml-2"
-            >
-              {data.side}
-            </Badge>
           </DialogTitle>
-          <DialogDescription>
-            {`${data.symbol} at $${data.price.toFixed(2)} • ${new Date(data.timestamp).toLocaleString()}`}
-          </DialogDescription>
         </DialogHeader>
         
-        <div className="space-y-4 my-2">
-          {data.reasons.map((category, idx) => (
-            <Card key={idx} className="bg-muted/30 p-4 border border-border/40">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="bg-background/50 p-1.5 rounded-full">
-                  {category.icon}
-                </div>
-                <h4 className="font-semibold">{category.category}</h4>
-              </div>
-              
-              <div className="space-y-2">
-                {category.points.map((point, pointIdx) => (
-                  <div key={pointIdx} className="pl-8 relative">
-                    <div className="absolute left-0 top-1">
-                      <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm font-medium">{point.key}</span>
-                      <Badge 
-                        variant={point.impact === "high" ? "success" : point.impact === "medium" ? "warning" : "outline"}
-                        className="text-xs"
-                      >
-                        {point.impact} impact
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground">{point.value}</p>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          ))}
-          
-          <div className="bg-muted/30 p-4 rounded-md border border-border/40">
-            <div className="flex items-center gap-2 mb-2">
-              <HelpCircle className="h-4 w-4" />
-              <h4 className="font-semibold">Conclusion</h4>
+        {orderData ? (
+          <div className="flex flex-col gap-4">
+            {orderData}
             </div>
-            <p className="text-sm">{data.conclusion}</p>
+        ) : (
+          <div className="flex justify-center items-center h-64">
+            <div className="text-center">
+              <p className="text-lg font-semibold">No trading justification data available</p>
+              <p className="text-muted-foreground">Please make a trade to view the trading justification</p>
+            </div>
           </div>
-          
-          <div className="flex justify-between mt-4">
-            <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>
-              Close
-            </Button>
-            <Button variant="default" size="sm" className="gap-1">
-              <TrendingUp className="h-3.5 w-3.5" />
-              <span>View Detailed Analysis</span>
-            </Button>
-          </div>
-        </div>
+        )}
+        
       </DialogContent>
     </Dialog>
-  )
+  );
+  
 }

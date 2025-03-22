@@ -40,10 +40,7 @@ export default function AlgoTrading() {
             <RefreshCw className="h-3.5 w-3.5" />
             <span>Refresh</span>
           </Button>
-          <Button variant="default" size="sm" className="gap-1">
-            <Plus className="h-3.5 w-3.5" />
-            <span>New Strategy</span>
-          </Button>
+
         </div>
       </header>
 

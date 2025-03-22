@@ -17,31 +17,19 @@ from trade_tracker import log_trade, generate_performance_summary, initialize_cs
 import math
 import threading
 from datetime import datetime, timedelta
-# Add imports for WebSocket server
 import asyncio
 from websockets.server import serve
 import threading
 
-# Load environment variables from .env file
-load_dotenv()
-
-# Get API keys from environment variables
-API_KEY = os.getenv('BINANCE_TESTNET_API_KEY')
-API_SECRET = os.getenv('BINANCE_TESTNET_API_SECRET')
+# Import all configuration from config file
+from config import *
 
 # Initialize Binance Testnet client
 client = BinanceTestnetClient(API_KEY, API_SECRET)
 
-# Global variables to store data:
-# candles - recent 60 candles for display and LSTM
-# historical_data - longer history for accurate indicator calculations
-candles = deque(maxlen=60)
+# Global variables to store data
+candles = deque(maxlen=MAX_CANDLES)
 historical_data = []  # Stores a longer history for calculating indicators
-
-# Trading configuration
-TRADING_ENABLED = True  # Set to False to disable actual order placement
-TRADING_SYMBOL = "BTCUSDT"
-TRADING_INTERVAL = "1m"
 
 # Active trades tracking
 active_trades = []
@@ -49,41 +37,29 @@ trade_monitor_running = False
 trade_monitor_thread = None
 
 # WebSocket server configuration
-WS_SERVER_HOST = 'localhost'
-WS_SERVER_PORT = 8765
 connected_clients = set()
 websocket_server_running = False
 
-# Function to handle WebSocket server connections
 async def handle_client_connection(websocket, path):
-    """Handle new WebSocket client connections"""
     global connected_clients
-    # Register client
     connected_clients.add(websocket)
     print(f"New client connected. Total clients: {len(connected_clients)}")
     
     try:
-        # Keep the connection alive and handle any incoming messages
         async for message in websocket:
-            # We can process any incoming messages here if needed
             pass
     except Exception as e:
         print(f"WebSocket client error: {e}")
     finally:
-        # Unregister client when disconnected
         connected_clients.remove(websocket)
         print(f"Client disconnected. Remaining clients: {len(connected_clients)}")
 
-# Function to broadcast data to all connected clients
 async def broadcast_data(data):
-    """Send data to all connected WebSocket clients"""
     if not connected_clients:
-        return  # No clients connected
+        return
     
-    # Convert data to JSON string
     json_data = json.dumps(data)
     
-    # Send to all connected clients
     disconnected = set()
     for client in connected_clients:
         try:
@@ -92,25 +68,19 @@ async def broadcast_data(data):
             print(f"Error sending to client: {e}")
             disconnected.add(client)
     
-    # Remove disconnected clients
     for client in disconnected:
         connected_clients.remove(client)
 
-# Function to run WebSocket server
 async def run_websocket_server():
-    """Start and run the WebSocket server"""
     global websocket_server_running
     websocket_server_running = True
     
     async with serve(handle_client_connection, WS_SERVER_HOST, WS_SERVER_PORT):
         print(f"WebSocket server started at ws://{WS_SERVER_HOST}:{WS_SERVER_PORT}")
-        # Keep the server running indefinitely
         while websocket_server_running:
             await asyncio.sleep(1)
 
-# Function to start WebSocket server in a separate thread
 def start_websocket_server():
-    """Start WebSocket server in a background thread"""
     def run():
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
@@ -120,9 +90,7 @@ def start_websocket_server():
     ws_thread.start()
     print("WebSocket server thread started")
 
-# Function to send data through WebSocket
 def send_analysis_data(lstm_data, indicator_data, monte_carlo_data, order):
-    """Package and send analysis data through WebSocket"""
     analysis_data = {
         'timestamp': int(time.time() * 1000),
         'lstm': lstm_data,
@@ -131,7 +99,6 @@ def send_analysis_data(lstm_data, indicator_data, monte_carlo_data, order):
         'order': order
     }
     
-    # Run the broadcast in a separate thread to avoid blocking
     def broadcast():
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
@@ -140,44 +107,29 @@ def send_analysis_data(lstm_data, indicator_data, monte_carlo_data, order):
     threading.Thread(target=broadcast, daemon=True).start()
 
 def calculate_indicators(candle_data):
-    """
-    Calculate technical indicators for the candle data using pandas_ta
-    Returns the original data with added indicator columns
-    """
-    # Convert to pandas DataFrame for easier calculations
     df = pd.DataFrame(candle_data)
     
-    # Ensure we have a clean DataFrame
     if len(df) == 0:
         return []
     
-    # Calculate RSI (14 periods)
-    df['rsi'] = ta.rsi(df['close'], length=14)
+    df['rsi'] = ta.rsi(df['close'], length=RSI_PERIOD)
     
-    # Calculate MACD (12, 26, 9)
-    macd = ta.macd(df['close'], fast=12, slow=26, signal=9)
-    df['macd'] = macd['MACD_12_26_9']
-    df['macd_signal'] = macd['MACDs_12_26_9']
+    macd = ta.macd(df['close'], fast=MACD_FAST, slow=MACD_SLOW, signal=MACD_SIGNAL)
+    df['macd'] = macd[f'MACD_{MACD_FAST}_{MACD_SLOW}_{MACD_SIGNAL}']
+    df['macd_signal'] = macd[f'MACDs_{MACD_FAST}_{MACD_SLOW}_{MACD_SIGNAL}']
     
-    # Calculate Bollinger Bands (20 periods, 2 std)
-    bbands = ta.bbands(df['close'], length=20, std=2)
-    df['upper_band'] = bbands['BBU_20_2.0']
-    df['lower_band'] = bbands['BBL_20_2.0']
+    bbands = ta.bbands(df['close'], length=BB_PERIOD, std=BB_STD)
+    df['upper_band'] = bbands[f'BBU_{BB_PERIOD}_{BB_STD}.0']
+    df['lower_band'] = bbands[f'BBL_{BB_PERIOD}_{BB_STD}.0']
     
-    # Convert NaN to None for JSON serialization
     df = df.replace({np.nan: None})
     
-    # Convert back to dictionary format
     return df.to_dict('records')
 
 def get_historical_candles(symbol, interval, limit=500):
-    """
-    Fetch historical candle data from Binance Testnet
-    """
     return client.get_historical_candles(symbol, interval, limit)
 
 def get_account_balance(asset="USDT"):
-    """Get current balance for the specified asset"""
     balance = client.get_balance(asset)
     print(f"\n============ {asset} BALANCE ============")
     print(f"Free: {balance['free']:.2f} {asset}")
@@ -185,10 +137,8 @@ def get_account_balance(asset="USDT"):
     return balance
 
 def initialize_active_trades():
-    """Check BTC balance and sell if over 1.0 BTC threshold"""
     print("\n============ CHECKING BTC BALANCE ============")
     try:
-        # Get current account balances to check for existing positions
         btc_balance = client.get_balance("BTC")
         btc_free = btc_balance['free']
         btc_locked = btc_balance['locked']
@@ -196,13 +146,10 @@ def initialize_active_trades():
         
         print(f"Current BTC position: {total_btc} BTC (Free: {btc_free}, Locked: {btc_locked})")
         
-        # If BTC balance is over 1.0, immediately sell it
         if total_btc > 1.0:
             print(f"Found BTC balance over threshold: {total_btc} BTC - Executing market sell")
             
-            # Only sell the free balance that we can access (not locked in orders)
             if btc_free > 0:
-                # Execute market sell for all free BTC
                 sell_result = client.place_market_sell_order(
                     symbol=TRADING_SYMBOL,
                     quantity=str(btc_free)
@@ -223,26 +170,21 @@ def initialize_active_trades():
         print(f"Error checking BTC balance: {e}")
 
 def monitor_active_trades():
-    """Continuously monitor active trades for target and stop loss hits"""
     global active_trades, trade_monitor_running
     
     print("\n============ TRADE MONITOR STARTED ============")
     
     while trade_monitor_running:
         if not active_trades:
-            # No active trades to monitor, sleep and check again
             time.sleep(5)
             continue
             
         try:
-            # Get current price
             ticker = client.get_symbol_ticker(TRADING_SYMBOL)
             current_price = float(ticker['price'])
             
-            # Make a copy of the active_trades list to avoid modification during iteration
             trades_to_check = active_trades.copy()
             
-            # Check each active trade
             for trade in trades_to_check:
                 order_id = trade['order_id']
                 entry_price = trade['entry_price']
@@ -251,16 +193,13 @@ def monitor_active_trades():
                 stop_loss = trade['stop_loss']
                 entry_time = datetime.strptime(trade['time'], "%Y-%m-%d %H:%M:%S") if 'time' in trade else None
                 
-                # Skip trades that are already being processed
                 if trade.get('being_processed', False):
                     continue
                 
                 print(f"Checking trade: ID={order_id}, Entry=${entry_price:.2f}, "
                       f"Current=${current_price:.2f}, TP=${take_profit:.2f}, SL=${stop_loss:.2f}")
                 
-                # For newly placed limit orders, check if they're filled before monitoring SL/TP
                 if not trade.get('existing_position', False) and not trade.get('confirmed_filled', False):
-                    # Check if the original buy order has been filled first
                     order_status = client.get_order_status(TRADING_SYMBOL, order_id)
                     
                     if 'status' in order_status and order_status['status'] == 'FILLED':
@@ -269,21 +208,17 @@ def monitor_active_trades():
                     else:
                         print(f"Order {order_id} is not filled yet. Status: {order_status.get('status', 'Unknown')}")
                         
-                        # Check if order has been in NEW status for more than 10 minutes
                         if order_status.get('status') == 'NEW' and entry_time:
                             current_time = datetime.now()
                             order_age_minutes = (current_time - entry_time).total_seconds() / 60
                             
-                            # If order is older than 10 minutes, cancel it
                             if order_age_minutes > 10:
                                 print(f"\n============ ORDER EXPIRATION ============")
                                 print(f"Order {order_id} has not been filled after {order_age_minutes:.1f} minutes. Cancelling.")
                                 
-                                # Mark as being processed
                                 trade['being_processed'] = True
                                 
                                 try:
-                                    # Cancel the order
                                     cancel_result = client.cancel_order(
                                         symbol=TRADING_SYMBOL,
                                         order_id=order_id
@@ -291,29 +226,24 @@ def monitor_active_trades():
                                     
                                     print(f"Order cancellation result: {cancel_result}")
                                     
-                                    # Remove from active trades if successful
                                     if not 'code' in cancel_result:
                                         active_trades.remove(trade)
                                         print(f"Trade {order_id} removed from monitoring (expired after 10 minutes)")
                                     else:
-                                        # Failed, unmark as being processed
                                         trade['being_processed'] = False
                                         print(f"Failed to cancel order {order_id}: {cancel_result}")
                                 except Exception as e:
                                     print(f"Error cancelling expired order: {e}")
                                     trade['being_processed'] = False
                         
-                        continue  # Skip this trade until it's filled or cancelled
+                        continue
                 
-                # Check if target price is hit (take profit)
                 if current_price >= take_profit:
                     print(f"\n============ TAKE PROFIT HIT ============")
                     print(f"Order ID: {order_id} - Target: ${take_profit} - Current: ${current_price}")
                     
-                    # Mark as being processed to prevent duplicate sells
                     trade['being_processed'] = True
                     
-                    # Execute market sell
                     try:
                         sell_result = client.place_market_sell_order(
                             symbol=TRADING_SYMBOL,
@@ -321,7 +251,6 @@ def monitor_active_trades():
                         )
                         print(f"Take profit sell executed: {sell_result}")
                         
-                        # Record the trade in our CSV history
                         log_trade(
                             order_id=order_id,
                             symbol=TRADING_SYMBOL,
@@ -334,26 +263,21 @@ def monitor_active_trades():
                             entry_time=entry_time
                         )
                         
-                        # Remove from active trades if successful
                         if 'orderId' in sell_result and not 'code' in sell_result:
                             active_trades.remove(trade)
                             print(f"Trade {order_id} removed from monitoring (take profit)")
                         else:
-                            # Failed, unmark as being processed
                             trade['being_processed'] = False
                     except Exception as e:
                         print(f"Error executing take profit: {e}")
                         trade['being_processed'] = False
                 
-                # Check if stop loss is hit
                 elif current_price <= stop_loss:
                     print(f"\n============ STOP LOSS HIT ============")
                     print(f"Order ID: {order_id} - Stop Loss: ${stop_loss} - Current: ${current_price}")
                     
-                    # Mark as being processed
                     trade['being_processed'] = True
                     
-                    # Execute market sell
                     try:
                         sell_result = client.place_market_sell_order(
                             symbol=TRADING_SYMBOL,
@@ -361,7 +285,6 @@ def monitor_active_trades():
                         )
                         print(f"Stop loss sell executed: {sell_result}")
                         
-                        # Record the trade in our CSV history
                         log_trade(
                             order_id=order_id,
                             symbol=TRADING_SYMBOL,
@@ -374,44 +297,37 @@ def monitor_active_trades():
                             entry_time=entry_time
                         )
                         
-                        # Remove from active trades if successful
                         if 'orderId' in sell_result and not 'code' in sell_result:
                             active_trades.remove(trade)
                             print(f"Trade {order_id} removed from monitoring (stop loss)")
                         else:
-                            # Failed, unmark as being processed
                             trade['being_processed'] = False
                     except Exception as e:
                         print(f"Error executing stop loss: {e}")
                         trade['being_processed'] = False
             
-            # Wait a short time before checking prices again
             time.sleep(1)
             
         except Exception as e:
             print(f"Error in trade monitor: {e}")
-            time.sleep(10)  # Longer wait on error
+            time.sleep(10)
     
     print("\n============ TRADE MONITOR STOPPED ============")
 
-# Add new function to generate performance reports
 def print_performance_report():
-    """Generate and print a performance report"""
     return generate_performance_summary()
 
 def start_trade_monitor():
-    """Start the trade monitoring thread if not already running"""
     global trade_monitor_running, trade_monitor_thread
     
     if not trade_monitor_running:
         trade_monitor_running = True
         trade_monitor_thread = threading.Thread(target=monitor_active_trades)
-        trade_monitor_thread.daemon = True  # Allow the thread to exit when main program exits
+        trade_monitor_thread.daemon = True
         trade_monitor_thread.start()
         print("Trade monitoring thread started")
 
 def stop_trade_monitor():
-    """Stop the trade monitoring thread"""
     global trade_monitor_running
     
     if trade_monitor_running:
@@ -421,7 +337,6 @@ def stop_trade_monitor():
         print("Trade monitoring thread stopped")
 
 def execute_order(order):
-    """Execute an order on Binance Testnet"""
     if not TRADING_ENABLED:
         print("Trading is disabled. Not placing actual order.")
         return None
@@ -430,39 +345,32 @@ def execute_order(order):
         print("No order to execute.")
         return None
     
-    # Save the justification to print later
     justification = order.pop("justification", "No justification provided")
     
-    # Check available balance
     balance = get_account_balance("USDT")
     available_funds = balance['free']
     
     order_value = order['position_value']
     if order_value > available_funds:
         print(f"Insufficient funds. Required: ${order_value:.2f}, Available: ${available_funds:.2f}")
-        # Adjust order quantity based on available funds
-        order['quantity'] = (available_funds / order['price']) * 0.99  # Using 99% of available funds
+        order['quantity'] = (available_funds / order['price']) * 0.99
         order['position_value'] = order['quantity'] * order['price']
         print(f"Adjusted order: {order['quantity']:.5f} BTC (${order['position_value']:.2f})")
     
-    # Ensure order quantity is not too small
-    min_quantity = 0.001  # Using higher minimum to ensure MIN_NOTIONAL
+    min_quantity = 0.001
     if float(order['quantity']) < min_quantity:
         print(f"Order quantity {order['quantity']} is below minimum {min_quantity}. Adjusting order size.")
         order['quantity'] = min_quantity
         order['position_value'] = order['quantity'] * order['price']
         print(f"Adjusted minimum order: {order['quantity']} BTC (${order['position_value']:.2f})")
     
-    # Make sure the quantity is properly formatted and never zero
     if float(order['quantity']) <= 0:
         print(f"ERROR: Order quantity {order['quantity']} is invalid. Setting to minimum.")
         order['quantity'] = min_quantity
         order['position_value'] = order['quantity'] * order['price']
         
-    # Create a hard-coded safe quantity string with 5 decimal places
     safe_quantity = f"{float(order['quantity']):.5f}"
     
-    # Update the order with our safe quantity
     order['quantity'] = safe_quantity
     
     print(f"Final order data:")
@@ -477,7 +385,6 @@ def execute_order(order):
     results = {}
     
     try:
-        # Place main order
         main_order_result = client.place_order(
             symbol=order['symbol'],
             side=order['side'],
@@ -493,21 +400,16 @@ def execute_order(order):
         print(f"Order ID: {main_order_result.get('orderId')}")
         print(f"Status: {main_order_result.get('status')}")
         
-        # If there was an error, log it and return
         if 'code' in main_order_result:
             print(f"Order placement error: {main_order_result.get('msg')} (Code: {main_order_result.get('code')})")
             print("\n============ TRADE JUSTIFICATION ============")
             print(justification)
             return results
         
-        # If order was successful, add to active trades for monitoring
         if main_order_result.get('orderId'):
-            # Start the trade monitor if not already running
             start_trade_monitor()
             
-            # Only add to active trades if it's a new buy order (not a market sell)
             if order['side'] == 'BUY':
-                # Add this trade to our monitoring list
                 new_trade = {
                     'order_id': main_order_result.get('orderId'),
                     'symbol': order['symbol'],
@@ -520,7 +422,6 @@ def execute_order(order):
                     'confirmed_filled': main_order_result.get('status') == 'FILLED'
                 }
                 
-                # Print expiration time notice
                 expiration_time = (datetime.now() + timedelta(minutes=10)).strftime("%Y-%m-%d %H:%M:%S")
                 print(f"Order will expire if not filled by: {expiration_time}")
                 
@@ -531,7 +432,6 @@ def execute_order(order):
                 print(f"Target: ${new_trade['take_profit']}")
                 print(f"Stop Loss: ${new_trade['stop_loss']}")
         
-        # Print the trade justification
         print("\n============ TRADE JUSTIFICATION ============")
         print(justification)
         
@@ -539,7 +439,6 @@ def execute_order(order):
     except Exception as e:
         print(f"Error executing order: {e}")
         
-        # Still print justification even if there was an error
         print("\n============ TRADE JUSTIFICATION ============")
         print(justification)
         
@@ -551,8 +450,7 @@ def on_message(ws, message):
     data = json.loads(message)
     kline = data.get('k', {})
     
-    if (kline.get('x')):  # Check if the kline is closed
-        # Add current candle to our list with only selected columns
+    if (kline.get('x')):
         current_candle = {
             'open_time': kline.get('t'),
             'open': float(kline.get('o')),
@@ -565,40 +463,29 @@ def on_message(ws, message):
             'taker_buy_quote_asset_volume': float(kline.get('Q'))
         }
         
-        # Add new candle to historical data and limit size to prevent memory issues
         historical_data.append(current_candle)
-        if len(historical_data) > 1000:  # Keep last 1000 candles for calculations
-            historical_data = historical_data[-1000:]
+        if len(historical_data) > MAX_HISTORICAL_DATA:
+            historical_data = historical_data[-MAX_HISTORICAL_DATA:]
         
-        # Calculate indicators on all historical data
         candles_with_indicators = calculate_indicators(historical_data)
         
-        # Update the deque with only the last 60 candles with indicators
         candles.clear()
-        candles.extend(candles_with_indicators[-60:])
+        candles.extend(candles_with_indicators[-MAX_CANDLES:])
         
-        # Call LSTM function with updated candles
         lstm_response = get_lstm_output(candles)
         
-        # call indicator function
         indicator_response = get_indicator_data(candles)
         
-        # call monte carlo function
         monte_carlo_response = get_monte_carlo_data(candles)
         
-        # Generate trading order based on analysis results
         order = generate_order(lstm_response, indicator_response, monte_carlo_response)
         
-        # Make a copy of the order to send via WebSocket (to preserve justification)
         order_copy = order.copy() if order else None
         
-        # Send analysis data through WebSocket
         send_analysis_data(lstm_response, indicator_response, monte_carlo_response, order_copy)
         
-        # Execute order if generated
         if order:
             execution_result = execute_order(order)
-            # Store execution result if needed
         
         return data
 
@@ -615,45 +502,33 @@ def main():
     global candles, historical_data
     
     try:
-        # Initialize the trade history CSV file
         initialize_csv()
         
-        # Verify API key is working by getting account info
         account_info = client.get_account_info()
         print("Successfully connected to Binance Testnet")
         print(f"Account Status: {account_info.get('status')}")
         
-        # Display initial balance
         get_account_balance("USDT")
         get_account_balance("BTC")
         
-        # Check for BTC balance > 1.0 and sell immediately
         initialize_active_trades()
         
-        # Start trade monitoring thread (this is important for monitoring new orders)
         start_trade_monitor()
         
-        # Start WebSocket server for transmitting analysis data
         start_websocket_server()
         print(f"WebSocket analysis server available at ws://{WS_SERVER_HOST}:{WS_SERVER_PORT}")
         
-        # Fetch historical candle data before starting WebSocket connection
         symbol = TRADING_SYMBOL.lower()
         interval = TRADING_INTERVAL
         
-        # Get a large number of historical candles
         historical_data = get_historical_candles(symbol, interval)
         print(f"Fetched {len(historical_data)} historical candles")
         
-        # Calculate indicators using all historical data
         candles_with_indicators = calculate_indicators(historical_data)
         
-        # Initialize the deque with only the last 60 candles that have indicators
-        candles = deque(candles_with_indicators[-60:], maxlen=60)
+        candles = deque(candles_with_indicators[-MAX_CANDLES:], maxlen=MAX_CANDLES)
         print(f"Initialized display with {len(candles)} recent candles with indicators")
         
-        # Start WebSocket connection for real-time data
-        # Note: Binance testnet uses the same WebSocket endpoint as the main net
         ws_url = f"wss://stream.binance.com:9443/ws/{symbol}@kline_{interval}"
         ws = websocket.WebSocketApp(ws_url,
                                     on_message=on_message,
