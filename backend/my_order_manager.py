@@ -54,7 +54,7 @@ def generate_order(lstm_data, indicator_data, monte_carlo_data):
     should_place_order = False
     order_type = "BUY"
     
-    if total_score > 0.5:
+    if total_score > 0.1:
         should_place_order = True
     
     print("\n============ ORDER MANAGER ============")
