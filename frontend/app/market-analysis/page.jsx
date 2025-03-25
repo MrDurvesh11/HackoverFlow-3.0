@@ -363,7 +363,7 @@ export default function MarketAnalysis() {
                       <RefreshCw className="h-6 w-6 animate-spin" />
                     </div>
                   ) : (
-                    <div id="tradingview-chart-container" ref={tradingViewRef} className="h-full w-full" />
+                    <div id="tradingview-chart-container" ref={tradingViewRef} className="h-full -full" />
                   )}
                 </CardContent>
               </Card>
@@ -735,8 +735,7 @@ export default function MarketAnalysis() {
             
                 {/* Disclaimer */}
                 <div className="text-xs text-slate-500 mt-4 italic pt-2 border-t border-slate-700/50">
-                  This analysis is for informational purposes only and does not constitute investment advice. 
-                  Market data as of <p suppressHydrationWarning>{new Date().toLocaleDateString()}</p>
+                  This analysis is for informational purposes only and does not constitute investment advice.   
                 </div>
               </CardContent>
             </Card>

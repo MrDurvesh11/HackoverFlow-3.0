@@ -303,7 +303,7 @@ export function TradingSignals() {
                 )}
               </div>
               
-              {signalData.order && (
+              {signalData.order ? (
                 <div className="grid grid-cols-2 gap-y-2 gap-x-4 text-sm">
                   <div>
                     <span className="text-muted-foreground">Symbol:</span>
@@ -329,6 +329,10 @@ export function TradingSignals() {
                     <span className="text-muted-foreground">Risk Amount:</span>
                     <span className="font-medium ml-2">${signalData.order.risk_amount.toFixed(2)} ({signalData.order.risk_percentage}%)</span>
                   </div>
+                </div>
+              ):(
+                <div>
+                  <span className="text-muted-foreground">No order placed</span>
                 </div>
               )}
             </div>
@@ -454,7 +458,7 @@ export function TradingSignals() {
         <TradingJustificationModal
           open={justificationModalOpen}
           onOpenChange={setJustificationModalOpen}
-          orderData={signalData.order.justification}
+          orderData={signalData.order?.justification || 'No justification provided as no order placed'}
         />
       )}
     </Card>

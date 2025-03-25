@@ -119,7 +119,7 @@ export default function AlgoTrading() {
           </TabsList>
 
           <TabsContent value="strategies" className="mt-4 space-y-4">
-            <Card className="bg-gradient-card border-border/40">
+            {/* <Card className="bg-gradient-card border-border/40">
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
                   <div>
@@ -216,7 +216,7 @@ export default function AlgoTrading() {
                   </div>
                 </div>
               </CardContent>
-            </Card>
+            </Card> */}
 
             <Card className="bg-gradient-card border-border/40">
               <CardHeader className="pb-2">

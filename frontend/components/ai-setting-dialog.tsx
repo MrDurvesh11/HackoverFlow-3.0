@@ -120,12 +120,12 @@ export function StrategySettingsModal({ open, onOpenChange, strategyName, strate
                   onValueChange={(value) => setParams({...params, riskLevel: value})}
                 >
                   <SelectTrigger id="riskLevel" className="bg-background/50 border-border/40">
-                    <SelectValue placeholder="Select risk level" />
+                    <SelectValue placeholder="Select Symbol" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
+                    <SelectItem value="BTCUSDT">BTC</SelectItem>
+                    <SelectItem value="ETHUSDT">ETH</SelectItem>
+                    {/* <SelectItem value="high">High</SelectItem> */}
                   </SelectContent>
                 </Select>
               </div>
@@ -133,7 +133,7 @@ export function StrategySettingsModal({ open, onOpenChange, strategyName, strate
             
             <div className="space-y-2">
               <div className="flex justify-between">
-                <Label htmlFor="maxPosition">Max Position Size ($)</Label>
+                <Label htmlFor="maxPosition">Quantity</Label>
                 <span className="text-sm text-muted-foreground">${params.maxPosition.toLocaleString()}</span>
               </div>
               <Slider 
